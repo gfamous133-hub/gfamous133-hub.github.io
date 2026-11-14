@@ -324,7 +324,7 @@ const Shop = () => {
         );
       }
 
-      throw new Error("Imeshindikana kupata signature ya picha.");
+      throw new Error(t("uploadPermission"));
     }
 
     const {
@@ -473,12 +473,12 @@ const Shop = () => {
 
     for (const file of selectedFiles) {
       if (!allowedImageTypes.includes(file.type)) {
-        setError("Tumia picha za JPG, PNG au WebP pekee.");
+        setError(t("imageTypes"));
         return;
       }
 
       if (file.size > MAX_IMAGE_SIZE) {
-        setError("Kila picha lazima isiwe kubwa kuliko MB 5.");
+        setError(t("imageSize"));
         return;
       }
     }
@@ -542,7 +542,7 @@ const Shop = () => {
     const listingId = listing._id || listing.id;
 
     if (!listingId) {
-      setError("Tangazo hili halina kitambulisho sahihi.");
+      setError(t("reportFailed"));
       return;
     }
 
@@ -672,7 +672,7 @@ const Shop = () => {
               name="mineralType"
               value={filters.mineralType}
               onChange={handleFilterChange}
-              placeholder="Mfano: Gold"
+              placeholder="Gold"
               style={inputStyle}
             />
 
@@ -682,7 +682,7 @@ const Shop = () => {
               name="location"
               value={filters.location}
               onChange={handleFilterChange}
-              placeholder="Mfano: Nyamongo, Mara"
+              placeholder="Nyamongo, Mara"
               style={inputStyle}
             />
 
@@ -694,7 +694,7 @@ const Shop = () => {
               min="0"
               value={filters.minWeight}
               onChange={handleFilterChange}
-              placeholder="Mfano: 1"
+              placeholder="1"
               style={inputStyle}
             />
 
@@ -706,7 +706,7 @@ const Shop = () => {
               min="0"
               value={filters.maxWeight}
               onChange={handleFilterChange}
-              placeholder="Mfano: 1000"
+              placeholder="1000"
               style={inputStyle}
             />
 
@@ -880,7 +880,7 @@ const Shop = () => {
           )}
 
           <form onSubmit={handleSubmit}>
-            <label htmlFor="mineralType">Aina ya madini *</label>
+            <label htmlFor="mineralType">{t("mineralType")} *</label>
             <input
               id="mineralType"
               name="mineralType"
@@ -902,7 +902,7 @@ const Shop = () => {
               required
             />
 
-            <label htmlFor="location">Eneo la madini *</label>
+            <label htmlFor="location">{t("location")} *</label>
             <input
               id="location"
               name="location"
@@ -913,7 +913,7 @@ const Shop = () => {
               required
             />
 
-            <label htmlFor="weight">Uzito *</label>
+            <label htmlFor="weight">{t("weight")} *</label>
             <input
               id="weight"
               name="weight"
@@ -939,7 +939,7 @@ const Shop = () => {
               <option value="g">{t("gram")}</option>
             </select>
 
-            <label htmlFor="price">Bei *</label>
+            <label htmlFor="price">{t("price")} *</label>
             <input
               id="price"
               name="price"
@@ -953,7 +953,7 @@ const Shop = () => {
               required
             />
 
-            <label htmlFor="currency">Sarafu</label>
+            <label htmlFor="currency">{t("currency")}</label>
             <select
               id="currency"
               name="currency"
@@ -1043,7 +1043,7 @@ const Shop = () => {
               name="imageUrls"
               value={form.imageUrls}
               onChange={handleInputChange}
-              placeholder={"Bandika kiungo cha picha hapa.\nKiungo kimoja kwa kila mstari."}
+              placeholder={t("imageLinksPlaceholder")}
               style={{ ...inputStyle, minHeight: "90px" }}
             />
 
