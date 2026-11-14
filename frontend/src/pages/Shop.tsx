@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
@@ -44,6 +43,16 @@ interface CloudinarySignature {
   signature: string;
 }
 
+interface ListingFilters {
+  mineralType: string;
+  location: string;
+  minWeight: string;
+  maxWeight: string;
+  minPrice: string;
+  maxPrice: string;
+  currency: string;
+}
+
 const initialForm: ListingForm = {
   mineralType: "",
   description: "",
@@ -54,6 +63,16 @@ const initialForm: ListingForm = {
   currency: "TZS",
   contact: "",
   imageUrls: "",
+};
+
+const initialFilters: ListingFilters = {
+  mineralType: "",
+  location: "",
+  minWeight: "",
+  maxWeight: "",
+  minPrice: "",
+  maxPrice: "",
+  currency: "ALL",
 };
 
 const MAX_IMAGES = 5;
@@ -102,6 +121,10 @@ const buttonStyle = {
   fontWeight: "bold" as const,
 };
 
+const weightInGrams = (weight: number, unit: string): number => {
+  return unit.toLowerCase() === "kg" ? weight * 1000 : weight;
+};
+
 const Shop = () => {
   const {
     user,
@@ -116,6 +139,7 @@ const Shop = () => {
 
   const [listings, setListings] = useState<MineralListing[]>([]);
   const [form, setForm] = useState<ListingForm>(initialForm);
+  const [filters, setFilters] = useState<ListingFilters>(initialFilters);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -162,6 +186,76 @@ const Shop = () => {
     }));
   };
 
+  const handleFilterChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = event.target;
+
+    setFilters((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const filteredListings = listings.filter((listing) => {
+    const mineralSearch = filters.mineralType.trim().toLowerCase();
+    const locationSearch = filters.location.trim().toLowerCase();
+
+    if (
+      mineralSearch &&
+      !listing.mineralType.toLowerCase().includes(mineralSearch)
+    ) {
+      return false;
+    }
+
+    if (
+      locationSearch &&
+      !listing.location.toLowerCase().includes(locationSearch)
+    ) {
+      return false;
+    }
+
+    const grams = weightInGrams(
+      Number(listing.weight),
+      listing.weightUnit || "g"
+    );
+
+    if (filters.minWeight !== "" && grams < Number(filters.minWeight)) {
+      return false;
+    }
+
+    if (filters.maxWeight !== "" && grams > Number(filters.maxWeight)) {
+      return false;
+    }
+
+    if (
+      filters.currency !== "ALL" &&
+      listing.currency.toUpperCase() !== filters.currency
+    ) {
+      return false;
+    }
+
+    // Bei za sarafu tofauti hazilinganishwi pamoja.
+    // Chagua TZS au USD ili kutumia kichujio cha bei.
+    if (filters.currency !== "ALL") {
+      if (
+        filters.minPrice !== "" &&
+        Number(listing.price) < Number(filters.minPrice)
+      ) {
+        return false;
+      }
+
+      if (
+        filters.maxPrice !== "" &&
+        Number(listing.price) > Number(filters.maxPrice)
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     setError("");
     setSuccess("");
@@ -193,8 +287,7 @@ const Shop = () => {
 
     setSelectedFiles(files);
   };
-
-  // Upload images directly from the phone to Cloudinary.
+    // Upload images directly from the phone to Cloudinary.
   const uploadImages = async (files: File[]): Promise<string[]> => {
     if (files.length === 0) {
       return [];
@@ -493,8 +586,7 @@ const Shop = () => {
       console.error("Notification error:", err);
     });
   };
-
-  return (
+    return (
     <>
       <Header
         user={user}
@@ -545,9 +637,7 @@ const Shop = () => {
             {isLoadingListings ? "Inapakia..." : "Onyesha upya"}
           </button>
 
-          {isLoadingListings && (
-            <p>Inapakia matangazo...</p>
-          )}
+          {isLoadingListings && <p>Inapakia matangazo...</p>}
 
           {error && (
             <p role="alert" style={{ color: "#b00020" }}>
@@ -562,6 +652,120 @@ const Shop = () => {
             </p>
           )}
 
+          {/* Filters zinaonekana hata kama hakuna matangazo */}
+          <div
+            style={{
+              background: "#f5f8f6",
+              border: "1px solid #dce7df",
+              borderRadius: "10px",
+              padding: "15px",
+              marginTop: "20px",
+            }}
+          >
+            <h3>Tafuta na Chuja Madini</h3>
+
+            <label htmlFor="filterMineral">Aina ya madini</label>
+            <input
+              id="filterMineral"
+              name="mineralType"
+              value={filters.mineralType}
+              onChange={handleFilterChange}
+              placeholder="Mfano: Gold"
+              style={inputStyle}
+            />
+
+            <label htmlFor="filterLocation">Eneo</label>
+            <input
+              id="filterLocation"
+              name="location"
+              value={filters.location}
+              onChange={handleFilterChange}
+              placeholder="Mfano: Nyamongo, Mara"
+              style={inputStyle}
+            />
+
+            <label htmlFor="filterMinWeight">Uzito kuanzia (gramu)</label>
+            <input
+              id="filterMinWeight"
+              name="minWeight"
+              type="number"
+              min="0"
+              value={filters.minWeight}
+              onChange={handleFilterChange}
+              placeholder="Mfano: 1"
+              style={inputStyle}
+            />
+
+            <label htmlFor="filterMaxWeight">Uzito hadi (gramu)</label>
+            <input
+              id="filterMaxWeight"
+              name="maxWeight"
+              type="number"
+              min="0"
+              value={filters.maxWeight}
+              onChange={handleFilterChange}
+              placeholder="Mfano: 1000"
+              style={inputStyle}
+            />
+
+            <label htmlFor="filterCurrency">Sarafu ya bei</label>
+            <select
+              id="filterCurrency"
+              name="currency"
+              value={filters.currency}
+              onChange={handleFilterChange}
+              style={inputStyle}
+            >
+              <option value="ALL">Sarafu zote</option>
+              <option value="TZS">TZS</option>
+              <option value="USD">USD</option>
+            </select>
+
+            <label htmlFor="filterMinPrice">Bei kuanzia</label>
+            <input
+              id="filterMinPrice"
+              name="minPrice"
+              type="number"
+              min="0"
+              value={filters.minPrice}
+              onChange={handleFilterChange}
+              placeholder="Bei ya chini"
+              style={inputStyle}
+            />
+
+            <label htmlFor="filterMaxPrice">Bei hadi</label>
+            <input
+              id="filterMaxPrice"
+              name="maxPrice"
+              type="number"
+              min="0"
+              value={filters.maxPrice}
+              onChange={handleFilterChange}
+              placeholder="Bei ya juu"
+              style={inputStyle}
+            />
+
+            <button
+              type="button"
+              style={{ ...buttonStyle, background: "#555" }}
+              onClick={() => setFilters(initialFilters)}
+            >
+              Futa vichujio
+            </button>
+
+            <p>
+              <strong>
+                Matokeo: {filteredListings.length} kati ya {listings.length} matangazo
+              </strong>
+            </p>
+          </div>
+
+          {!isLoadingListings &&
+            listings.length > 0 &&
+            filteredListings.length === 0 && (
+              <p>Hakuna tangazo linalolingana na utafutaji wako.</p>
+            )}
+
           <div
             style={{
               display: "grid",
@@ -570,7 +774,7 @@ const Shop = () => {
               marginTop: "20px",
             }}
           >
-            {listings.map((listing, index) => (
+            {filteredListings.map((listing, index) => (
               <article
                 key={listing._id || listing.id || index}
                 style={{
@@ -580,20 +784,31 @@ const Shop = () => {
                   background: "white",
                 }}
               >
-                {listing.imageUrls?.[0] ? (
-                  <img
-                    src={listing.imageUrls[0]}
-                    alt={listing.mineralType}
-                    loading="lazy"
+                {listing.imageUrls && listing.imageUrls.length > 0 ? (
+                  <div
                     style={{
-                      width: "100%",
-                      height: "190px",
-                      objectFit: "cover",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                      gap: "4px",
                     }}
-                    onError={(event) => {
-                      event.currentTarget.style.display = "none";
-                    }}
-                  />
+                  >
+                    {listing.imageUrls.map((imageUrl, imageIndex) => (
+                      <img
+                        key={`${imageUrl}-${imageIndex}`}
+                        src={imageUrl}
+                        alt={`${listing.mineralType} picha ${imageIndex + 1}`}
+                        loading="lazy"
+                        style={{
+                          width: "100%",
+                          height: "150px",
+                          objectFit: "cover",
+                        }}
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ))}
+                  </div>
                 ) : (
                   <div
                     style={{
@@ -611,7 +826,6 @@ const Shop = () => {
 
                 <div style={{ padding: "15px" }}>
                   <h3>{listing.mineralType}</h3>
-
                   <p>{listing.description}</p>
 
                   <p>
@@ -664,10 +878,7 @@ const Shop = () => {
           )}
 
           <form onSubmit={handleSubmit}>
-            <label htmlFor="mineralType">
-              Aina ya madini *
-            </label>
-
+            <label htmlFor="mineralType">Aina ya madini *</label>
             <input
               id="mineralType"
               name="mineralType"
@@ -678,10 +889,7 @@ const Shop = () => {
               required
             />
 
-            <label htmlFor="description">
-              Maelezo ya madini *
-            </label>
-
+            <label htmlFor="description">Maelezo ya madini *</label>
             <textarea
               id="description"
               name="description"
@@ -692,10 +900,7 @@ const Shop = () => {
               required
             />
 
-            <label htmlFor="location">
-              Eneo la madini *
-            </label>
-
+            <label htmlFor="location">Eneo la madini *</label>
             <input
               id="location"
               name="location"
@@ -706,10 +911,7 @@ const Shop = () => {
               required
             />
 
-            <label htmlFor="weight">
-              Uzito *
-            </label>
-
+            <label htmlFor="weight">Uzito *</label>
             <input
               id="weight"
               name="weight"
@@ -723,10 +925,7 @@ const Shop = () => {
               required
             />
 
-            <label htmlFor="weightUnit">
-              Kipimo cha uzito
-            </label>
-
+            <label htmlFor="weightUnit">Kipimo cha uzito</label>
             <select
               id="weightUnit"
               name="weightUnit"
@@ -738,10 +937,7 @@ const Shop = () => {
               <option value="g">Gram (g)</option>
             </select>
 
-            <label htmlFor="price">
-              Bei *
-            </label>
-
+            <label htmlFor="price">Bei *</label>
             <input
               id="price"
               name="price"
@@ -755,10 +951,7 @@ const Shop = () => {
               required
             />
 
-            <label htmlFor="currency">
-              Sarafu
-            </label>
-
+            <label htmlFor="currency">Sarafu</label>
             <select
               id="currency"
               name="currency"
@@ -770,10 +963,7 @@ const Shop = () => {
               <option value="USD">US Dollar (USD)</option>
             </select>
 
-            <label htmlFor="contact">
-              Mawasiliano ya muuzaji *
-            </label>
-
+            <label htmlFor="contact">Mawasiliano ya muuzaji *</label>
             <input
               id="contact"
               name="contact"
@@ -787,7 +977,6 @@ const Shop = () => {
             <label htmlFor="imageFiles">
               Chagua picha kutoka Gallery ya simu
             </label>
-
             <input
               ref={fileInputRef}
               id="imageFiles"
@@ -820,7 +1009,7 @@ const Shop = () => {
                     key={`${file.name}-${index}`}
                     style={{ fontSize: "13px" }}
                   >
-                    {file.name} 鈥� {(file.size / (1024 * 1024)).toFixed(2)} MB
+                    {file.name} - {(file.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 ))}
 
@@ -847,7 +1036,6 @@ const Shop = () => {
             <label htmlFor="imageUrls">
               Viungo vya picha (si lazima)
             </label>
-
             <textarea
               id="imageUrls"
               name="imageUrls"
