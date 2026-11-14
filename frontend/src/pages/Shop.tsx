@@ -51,7 +51,9 @@ interface ListingFilters {
   mineralType: string;
   location: string;
   minWeight: string;
+  minWeightUnit: string;
   maxWeight: string;
+  maxWeightUnit: string;
   minPrice: string;
   maxPrice: string;
   currency: string;
@@ -74,7 +76,9 @@ const initialFilters: ListingFilters = {
   mineralType: "",
   location: "",
   minWeight: "",
+  minWeightUnit: "g",
   maxWeight: "",
+  maxWeightUnit: "g",
   minPrice: "",
   maxPrice: "",
   currency: "ALL",
@@ -226,11 +230,14 @@ const Shop = () => {
       listing.weightUnit || "g"
     );
 
-    if (filters.minWeight !== "" && grams < Number(filters.minWeight)) {
+    const minWeightGrams = Number(filters.minWeight) * (filters.minWeightUnit === "kg" ? 1000 : 1);
+    const maxWeightGrams = Number(filters.maxWeight) * (filters.maxWeightUnit === "kg" ? 1000 : 1);
+
+    if (filters.minWeight !== "" && grams < minWeightGrams) {
       return false;
     }
 
-    if (filters.maxWeight !== "" && grams > Number(filters.maxWeight)) {
+    if (filters.maxWeight !== "" && grams > maxWeightGrams) {
       return false;
     }
 
@@ -696,48 +703,68 @@ const Shop = () => {
             <h3>{t("filters")}</h3>
 
             <label htmlFor="filterMineral">{t("mineralType")}</label>
-            <input
+            <select
               id="filterMineral"
               name="mineralType"
               value={filters.mineralType}
               onChange={handleFilterChange}
-              placeholder="Gold"
               style={inputStyle}
-            />
+            >
+              <option value="">Aina zote za madini</option>
+              {Array.from(new Set(listings.map((item) => item.mineralType).filter(Boolean))).sort().map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
 
-            <label htmlFor="filterLocation">{t("location")}</label>
-            <input
+            <label htmlFor="filterLocation">Location / Eneo</label>
+            <select
               id="filterLocation"
               name="location"
               value={filters.location}
               onChange={handleFilterChange}
-              placeholder="Nyamongo, Mara"
               style={inputStyle}
-            />
+            >
+              <option value="">Maeneo yote</option>
+              {Array.from(new Set(listings.map((item) => item.location).filter(Boolean))).sort().map((place) => (
+                <option key={place} value={place}>{place}</option>
+              ))}
+            </select>
 
             <label htmlFor="filterMinWeight">{t("minWeight")}</label>
-            <input
-              id="filterMinWeight"
-              name="minWeight"
-              type="number"
-              min="0"
-              value={filters.minWeight}
-              onChange={handleFilterChange}
-              placeholder="1"
-              style={inputStyle}
-            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                id="filterMinWeight"
+                name="minWeight"
+                type="number"
+                min="0"
+                value={filters.minWeight}
+                onChange={handleFilterChange}
+                placeholder="1"
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              <select name="minWeightUnit" value={filters.minWeightUnit} onChange={handleFilterChange} style={{ ...inputStyle, width: "95px" }}>
+                <option value="g">g</option>
+                <option value="kg">kg</option>
+              </select>
+            </div>
 
             <label htmlFor="filterMaxWeight">{t("maxWeight")}</label>
-            <input
-              id="filterMaxWeight"
-              name="maxWeight"
-              type="number"
-              min="0"
-              value={filters.maxWeight}
-              onChange={handleFilterChange}
-              placeholder="1000"
-              style={inputStyle}
-            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                id="filterMaxWeight"
+                name="maxWeight"
+                type="number"
+                min="0"
+                value={filters.maxWeight}
+                onChange={handleFilterChange}
+                placeholder="1000"
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              <select name="maxWeightUnit" value={filters.maxWeightUnit} onChange={handleFilterChange} style={{ ...inputStyle, width: "95px" }}>
+                <option value="g">g</option>
+                <option value="kg">kg</option>
+              </select>
+            </div>
 
             <label htmlFor="filterCurrency">{t("currency")}</label>
             <select
@@ -750,6 +777,8 @@ const Shop = () => {
               <option value="ALL">{t("allCurrencies")}</option>
               <option value="TZS">TZS</option>
               <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="PI">Pi</option>
             </select>
 
             <label htmlFor="filterMinPrice">{t("minPrice")}</label>
