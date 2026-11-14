@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 export type Language = "sw" | "en" | "fr" | "ar" | "zh" | "es" | "pt";
@@ -255,7 +255,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  const setLanguage = (nextLanguage: Language) => {
+  const setLanguage = useCallback((nextLanguage: Language) => {
     setLanguageState(nextLanguage);
     try {
       window.localStorage.setItem("gfamous-language", nextLanguage);
