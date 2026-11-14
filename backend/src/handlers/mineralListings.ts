@@ -14,6 +14,20 @@ export default function mountMineralListingEndpoints(router: Router) {
       ["core_team", "admin"].includes(role)
     );
 
+  const validEvidenceUrls = (value: unknown): value is string[] => {
+    if (value === undefined) return true;
+    if (!Array.isArray(value) || value.length > 3) return false;
+    return value.every((item) => {
+      if (typeof item !== "string") return false;
+      try {
+        const url = new URL(item);
+        return url.protocol === "https:" && url.hostname === "res.cloudinary.com";
+      } catch {
+        return false;
+      }
+    });
+  };
+
   // Display approved mineral listings
   router.get("/approved", async (req, res) => {
     try {
@@ -43,8 +57,12 @@ export default function mountMineralListingEndpoints(router: Router) {
       if (!user) return res.status(401).json({ error: "Please sign in first" });
       const listingId = String(req.body.listingId || "");
       const reason = String(req.body.reason || "").trim();
+      const evidenceImageUrls = req.body.evidenceImageUrls;
       if (!ObjectId.isValid(listingId) || !reason || reason.length > 1000) {
         return res.status(400).json({ error: "A valid listing and inspection reason are required" });
+      }
+      if (!validEvidenceUrls(evidenceImageUrls)) {
+        return res.status(400).json({ error: "Evidence must contain up to 3 valid Cloudinary image URLs" });
       }
       const listings = req.app.locals.mineralListingCollection;
       const requests = req.app.locals.inspectionRequestCollection;
@@ -57,6 +75,7 @@ export default function mountMineralListingEndpoints(router: Router) {
         listingId: new ObjectId(listingId), buyerId: user._id, buyerUsername: user.username,
         sellerId: listing.sellerId, sellerUsername: listing.sellerUsername,
         mineralType: listing.mineralType, listingLocation: listing.location, reason,
+        evidenceImageUrls: evidenceImageUrls || [],
         status: "requested", agentAssigned: false, feeQuoted: false,
         createdAt: new Date(), updatedAt: new Date(),
       });
@@ -188,6 +207,31 @@ export default function mountMineralListingEndpoints(router: Router) {
     }
   });
 
+  // Signed uploads for buyer evidence use a separate fixed Cloudinary folder.
+  router.post("/evidence/images/sign", async (req, res) => {
+    try {
+      if (!req.session.currentUser) {
+        return res.status(401).json({ error: "Please sign in first" });
+      }
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+      const apiKey = process.env.CLOUDINARY_API_KEY;
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+      if (!cloudName || !apiKey || !apiSecret) {
+        return res.status(503).json({ error: "Image upload service is not configured" });
+      }
+      const timestamp = Math.floor(Date.now() / 1000);
+      const folder = "gfamous/buyer-evidence";
+      const signatureString = `folder=${folder}&timestamp=${timestamp}`;
+      const signature = createHash("sha1")
+        .update(signatureString + apiSecret)
+        .digest("hex");
+      return res.status(200).json({ cloudName, apiKey, timestamp, folder, signature });
+    } catch (error) {
+      console.error("Error creating evidence upload signature:", error);
+      return res.status(500).json({ error: "Failed to prepare evidence image upload" });
+    }
+  });
+
   // Submit a mineral listing for moderation
   router.post("/", async (req, res) => {
     try {
@@ -300,6 +344,25 @@ export default function mountMineralListingEndpoints(router: Router) {
     }
   });
 
+  // Evidence reports are visible to moderators only.
+  router.get("/reports", async (req, res) => {
+    try {
+      if (!isModerator(req.session.currentUser)) {
+        return res.status(403).json({ error: "Moderator access required" });
+      }
+      const reports = req.app.locals.reportCollection;
+      if (!reports) return res.status(503).json({ error: "Database unavailable" });
+      const items = await reports.find({})
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .toArray();
+      return res.status(200).json({ reports: items });
+    } catch (error) {
+      console.error("Error loading listing reports:", error);
+      return res.status(500).json({ error: "Failed to load reports" });
+    }
+  });
+
   // Report an approved mineral listing
   router.post("/:id/report", async (req, res) => {
     try {
@@ -326,6 +389,7 @@ export default function mountMineralListingEndpoints(router: Router) {
       }
 
       const reason = String(req.body.reason || "").trim();
+      const evidenceImageUrls = req.body.evidenceImageUrls;
 
       if (!reason) {
         return res.status(400).json({
@@ -333,10 +397,16 @@ export default function mountMineralListingEndpoints(router: Router) {
         });
       }
 
+      if (!validEvidenceUrls(evidenceImageUrls)) {
+        return res.status(400).json({ error: "Evidence must contain up to 3 valid Cloudinary image URLs" });
+      }
+
       await reports.insertOne({
         listingId: new ObjectId(listingId),
         reason,
+        evidenceImageUrls: evidenceImageUrls || [],
         reporterId: req.session.currentUser?._id || null,
+        reporterUsername: req.session.currentUser?.username || null,
         status: "open",
         createdAt: new Date(),
       });
