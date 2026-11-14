@@ -1,7 +1,7 @@
-
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import type { User } from "../types/pi.ts";
+import { languageOptions, useLanguage } from "../contexts/LanguageContext";
 
 interface HeaderProps {
   onSignIn: () => void;
@@ -48,6 +48,8 @@ const Header = ({
   onSendTestNotification,
   isLoading,
 }: HeaderProps) => {
+  const { language, setLanguage, t } = useLanguage();
+
   return (
     <header style={headerStyle}>
       <div style={{ fontWeight: "bold", fontSize: 18 }}>
@@ -55,13 +57,37 @@ const Header = ({
       </div>
 
       <div style={userSectionStyle}>
+        <label htmlFor="gfamous-language" style={{ fontSize: 13 }}>
+          {t("language")}
+        </label>
+        <select
+          id="gfamous-language"
+          value={language}
+          onChange={(event) => setLanguage(event.target.value as typeof language)}
+          aria-label={t("language")}
+          style={{
+            padding: "8px 9px",
+            borderRadius: 6,
+            border: "1px solid white",
+            background: "#fff",
+            color: "#172b24",
+            maxWidth: 145,
+          }}
+        >
+          {languageOptions.map((option) => (
+            <option key={option.code} value={option.code}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
         {user ? (
           <>
             <span>@{user.username}</span>
 
             {user.roles.includes("admin") && (
               <Link to="/admin" style={buttonStyle}>
-                Admin Dashboard
+                {t("admin")}
               </Link>
             )}
 
@@ -71,7 +97,7 @@ const Header = ({
               onClick={onSignOut}
               disabled={isLoading}
             >
-              Sign out
+              {t("signOut")}
             </button>
 
             {user.roles.includes("core_team") && (
@@ -80,7 +106,7 @@ const Header = ({
                 style={buttonStyle}
                 onClick={onSendTestNotification}
               >
-                Send Test Notification
+                {t("testNotification")}
               </button>
             )}
           </>
@@ -91,7 +117,7 @@ const Header = ({
             onClick={onSignIn}
             disabled={isLoading}
           >
-            Sign in with Pi
+            {t("signIn")}
           </button>
         )}
       </div>
