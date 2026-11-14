@@ -165,11 +165,11 @@ const Shop = () => {
       );
     } catch (err) {
       console.error("Error loading mineral listings:", err);
-      setError(t("pendingLoadFailed"));
+      setError(t("approvedLoadFailed"));
     } finally {
       setIsLoadingListings(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void fetchListings();
@@ -318,7 +318,7 @@ const Shop = () => {
         }
 
         throw new Error(
-          `Imeshindikana kupata ruhusa ya kupakia picha. HTTP: ${
+          `${t("uploadPermission")} HTTP: ${
             status || "hakuna majibu kutoka server"
           }.`
         );
@@ -614,8 +614,7 @@ const Shop = () => {
           </h1>
 
           <p style={{ lineHeight: 1.6 }}>
-            Soko la kuunganisha wanunuzi na wauzaji wa dhahabu
-            na madini mengine.
+            {t("welcome")}
           </p>
 
           <p style={{ fontSize: "14px" }}>
@@ -649,8 +648,7 @@ const Shop = () => {
 
           {!isLoadingListings && listings.length === 0 && !error && (
             <p>
-              Bado hakuna matangazo yaliyoidhinishwa.
-              Unaweza kutuma tangazo lako hapa chini.
+              {t("noListings")}
             </p>
           )}
 
@@ -752,7 +750,7 @@ const Shop = () => {
               style={{ ...buttonStyle, background: "#555" }}
               onClick={() => setFilters(initialFilters)}
             >
-              Futa vichujio
+              {t("clearFilters")}
             </button>
 
             <p>
@@ -857,7 +855,7 @@ const Shop = () => {
                       marginTop: "8px",
                     }}
                   >
-                    Ripoti tangazo
+                    {t("report")}
                   </button>
                 </div>
               </article>
@@ -869,8 +867,7 @@ const Shop = () => {
           <h2>{t("submitListing")}</h2>
 
           <p style={{ color: "#666" }}>
-            Wauzaji wanaweza kutuma taarifa za madini yao.
-            Tangazo litakaguliwa kabla ya kuonekana kwa wanunuzi.
+            {t("sellerIntro")}
           </p>
 
           {!isAuthenticated && (
@@ -991,8 +988,7 @@ const Shop = () => {
             />
 
             <p style={{ fontSize: "13px", color: "#666" }}>
-              Chagua hadi picha 5. JPG, PNG au WebP.
-              Kila picha isiwe kubwa kuliko MB 5.
+              {t("imageRules")}
             </p>
 
             {selectedFiles.length > 0 && (
@@ -1030,7 +1026,7 @@ const Shop = () => {
                     }
                   }}
                 >
-                  Ondoa picha
+                  {t("removeImages")}
                 </button>
               </div>
             )}
@@ -1048,8 +1044,7 @@ const Shop = () => {
             />
 
             <p style={{ fontSize: "13px", color: "#666" }}>
-              Jumla ya picha kutoka Gallery na viungo visizidi 5.
-              Viungo lazima viwe vya HTTPS.
+              {t("imageLinkRules")}
             </p>
 
             {success && (
@@ -1077,8 +1072,8 @@ const Shop = () => {
               disabled={isSubmitting}
             >
               {isSubmitting
-                ? "Inapakia picha na kutuma tangazo..."
-                : "Tuma Tangazo"}
+                ? t("uploadingSubmitting")
+                : t("submit")}
             </button>
           </form>
         </section>
@@ -1096,11 +1091,11 @@ const Shop = () => {
 
           <p>
             <a href="https://gfamous133-hub.github.io/demo/privacy-policy.html">
-              Privacy Policy
+              {t("privacy")}
             </a>
             {" | "}
             <a href="https://gfamous133-hub.github.io/demo/terms-of-service.html">
-              Terms of Service
+              {t("terms")}
             </a>
           </p>
         </footer>
