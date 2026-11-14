@@ -288,7 +288,7 @@ export default function AdminDashboard() {
           <>
             <button
               type="button"
-              style={{ ...button, background: "#176b43" }}
+              style={{ ...button, background: "#10213b" }}
               onClick={() => void reviewListing(listing, "approved")}
               disabled={busyId === listing._id}
             >
@@ -318,7 +318,7 @@ export default function AdminDashboard() {
       color: "#202020",
     }}>
       <header style={{
-        background: "#17231e",
+        background: "#10213b",
         color: "#fff",
         padding: 22,
         borderRadius: 12,
@@ -351,7 +351,7 @@ export default function AdminDashboard() {
       )}
 
       {message && (
-        <p role="status" style={{ ...card, color: "#176b43" }}>
+        <p role="status" style={{ ...card, color: "#10213b" }}>
           {message}
         </p>
       )}
@@ -360,7 +360,7 @@ export default function AdminDashboard() {
         <h2>{t("pending")}: {pending.length}</h2>
         <button
           type="button"
-          style={{ ...button, background: "#176b43" }}
+          style={{ ...button, background: "#10213b" }}
           onClick={() => void loadPending()}
           disabled={loading}
         >
@@ -382,7 +382,7 @@ export default function AdminDashboard() {
         <h2>{t("inspectionRequests")}: {inspectionRequests.length}</h2>
         <button
           type="button"
-          style={{ ...button, background: "#176b43" }}
+          style={{ ...button, background: "#10213b" }}
           onClick={() => void loadInspectionRequests()}
           disabled={loadingInspections}
         >
@@ -407,7 +407,7 @@ export default function AdminDashboard() {
           {request.status !== "declined" && (
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
               {request.status !== "reviewing" && (
-                <button type="button" style={{ ...button, background: "#176b43" }} onClick={() => void updateInspectionStatus(request, "reviewing")} disabled={busyId === request._id}>
+                <button type="button" style={{ ...button, background: "#10213b" }} onClick={() => void updateInspectionStatus(request, "reviewing")} disabled={busyId === request._id}>
                   {t("markReviewing")}
                 </button>
               )}
@@ -423,7 +423,7 @@ export default function AdminDashboard() {
         <h2>{t("approved")}: {approved.length}</h2>
         <button
           type="button"
-          style={{ ...button, background: "#176b43" }}
+          style={{ ...button, background: "#10213b" }}
           onClick={() => void loadApproved()}
           disabled={loadingApproved}
         >
