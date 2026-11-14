@@ -12,8 +12,8 @@ interface HeaderProps {
 }
 
 const headerStyle: CSSProperties = {
-  padding: 12,
-  backgroundColor: "#17231e",
+  padding: 14,
+  background: "linear-gradient(115deg, #0d1b31 0%, #18365b 100%)",
   color: "white",
   width: "100%",
   boxSizing: "border-box",
@@ -22,6 +22,8 @@ const headerStyle: CSSProperties = {
   justifyContent: "space-between",
   flexWrap: "wrap",
   gap: 10,
+  borderBottom: "3px solid #d8aa35",
+  boxShadow: "0 5px 18px rgba(16, 33, 59, 0.16)",
 };
 
 const userSectionStyle: CSSProperties = {
@@ -33,9 +35,9 @@ const userSectionStyle: CSSProperties = {
 
 const buttonStyle: CSSProperties = {
   padding: "8px 12px",
-  borderRadius: 6,
-  border: "1px solid #d6a62e",
-  backgroundColor: "rgba(255,255,255,0.06)",
+  borderRadius: 8,
+  border: "1px solid #d8aa35",
+  backgroundColor: "rgba(255,255,255,0.08)",
   color: "white",
   cursor: "pointer",
   textDecoration: "none",
@@ -52,8 +54,8 @@ const Header = ({
 
   return (
     <header style={headerStyle}>
-      <div style={{ fontWeight: "bold", fontSize: 18 }}>
-        GFAMOUS MINERAL MARKET
+      <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: 0.35 }}>
+        <span style={{ color: "#f0c75e" }}>GFAMOUS</span> MINERAL MARKET
       </div>
 
       <div style={userSectionStyle}>
@@ -67,10 +69,10 @@ const Header = ({
           aria-label={t("language")}
           style={{
             padding: "8px 9px",
-            borderRadius: 6,
-            border: "1px solid #d6a62e",
+            borderRadius: 8,
+            border: "1px solid #d8aa35",
             background: "#fff",
-            color: "#172b24",
+            color: "#10213b",
             maxWidth: 145,
           }}
         >
@@ -84,39 +86,22 @@ const Header = ({
         {user ? (
           <>
             <span>@{user.username}</span>
-
             {user.roles.includes("admin") && (
               <Link to="/admin" style={buttonStyle}>
                 {t("admin")}
               </Link>
             )}
-
-            <button
-              type="button"
-              style={buttonStyle}
-              onClick={onSignOut}
-              disabled={isLoading}
-            >
+            <button type="button" style={buttonStyle} onClick={onSignOut} disabled={isLoading}>
               {t("signOut")}
             </button>
-
             {user.roles.includes("core_team") && (
-              <button
-                type="button"
-                style={buttonStyle}
-                onClick={onSendTestNotification}
-              >
+              <button type="button" style={buttonStyle} onClick={onSendTestNotification}>
                 {t("testNotification")}
               </button>
             )}
           </>
         ) : (
-          <button
-            type="button"
-            style={buttonStyle}
-            onClick={onSignIn}
-            disabled={isLoading}
-          >
+          <button type="button" style={buttonStyle} onClick={onSignIn} disabled={isLoading}>
             {t("signIn")}
           </button>
         )}
