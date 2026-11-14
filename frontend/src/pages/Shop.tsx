@@ -117,7 +117,7 @@ const inputStyle = {
 };
 
 const buttonStyle = {
-  background: "#176b43",
+  background: "#10213b",
   color: "white",
   border: "none",
   borderRadius: "7px",
@@ -1101,7 +1101,7 @@ const Shop = () => {
             {success && (
               <p
                 role="status"
-                style={{ color: "#176b43", fontWeight: "bold" }}
+                style={{ color: "#10213b", fontWeight: "bold" }}
               >
                 {success}
               </p>
