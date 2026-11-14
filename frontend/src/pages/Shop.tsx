@@ -94,12 +94,12 @@ const pageStyle = {
   margin: "0 auto",
   padding: "20px",
   fontFamily: "Arial, sans-serif",
-  color: "#202020",
+  color: "#202923",
 } as const;
 
 const cardStyle = {
   background: "#ffffff",
-  border: "1px solid #e2e2e2",
+  border: "1px solid #e4e8e1",
   borderRadius: "12px",
   padding: "18px",
   marginBottom: "18px",
@@ -110,7 +110,7 @@ const inputStyle = {
   padding: "12px",
   marginTop: "6px",
   marginBottom: "14px",
-  border: "1px solid #cccccc",
+  border: "1px solid #d8ded6",
   borderRadius: "7px",
   boxSizing: "border-box" as const,
   fontSize: "15px",
