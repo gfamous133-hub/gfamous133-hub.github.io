@@ -113,6 +113,7 @@ const start = async () => {
     app.locals.userCollection = db.collection("users");
     app.locals.mineralListingCollection = db.collection("mineral_listings");
     app.locals.reportCollection = db.collection("reports");
+    app.locals.inspectionRequestCollection = db.collection("inspection_requests");
 
     console.log("Connected to MongoDB Atlas successfully.");
 
