@@ -1032,15 +1032,27 @@ const Shop = () => {
 
           <form onSubmit={handleSubmit}>
             <label htmlFor="mineralType">{t("mineralType")} *</label>
-            <input
+            <select
               id="mineralType"
               name="mineralType"
               value={form.mineralType}
               onChange={handleInputChange}
-              placeholder={t("mineralTypePlaceholder")}
               style={inputStyle}
               required
-            />
+            >
+              <option value="">Chagua aina ya madini</option>
+              <option value="Gold">Gold / Dhahabu</option>
+              <option value="Silver">Silver / Fedha</option>
+              <option value="Copper">Copper / Shaba</option>
+              <option value="Tanzanite">Tanzanite</option>
+              <option value="Diamond">Diamond / Almasi</option>
+              <option value="Sapphire">Sapphire</option>
+              <option value="Ruby">Ruby</option>
+              <option value="Tourmaline">Tourmaline</option>
+              <option value="Graphite">Graphite</option>
+              <option value="Tin">Tin / Bati</option>
+              <option value="Other">Other / Madini mengine (fafanua kwenye maelezo)</option>
+            </select>
 
             <label htmlFor="description">{t("description")} *</label>
             <textarea
@@ -1053,6 +1065,26 @@ const Shop = () => {
               required
             />
 
+            <label htmlFor="locationPreset">Chagua eneo (hiari)</label>
+            <select
+              id="locationPreset"
+              value=""
+              onChange={(event) => {
+                if (event.target.value) {
+                  setForm((previous) => ({ ...previous, location: event.target.value }));
+                }
+              }}
+              style={inputStyle}
+            >
+              <option value="">Chagua eneo au andika hapa chini</option>
+              <option value="Nyamongo, Mara, Tanzania">Nyamongo, Mara, Tanzania</option>
+              <option value="Tarime, Mara, Tanzania">Tarime, Mara, Tanzania</option>
+              <option value="Mwanza, Tanzania">Mwanza, Tanzania</option>
+              <option value="Geita, Tanzania">Geita, Tanzania</option>
+              <option value="Shinyanga, Tanzania">Shinyanga, Tanzania</option>
+              <option value="Dar es Salaam, Tanzania">Dar es Salaam, Tanzania</option>
+              <option value="Other">Other / Eneo jingine</option>
+            </select>
             <label htmlFor="location">{t("location")} *</label>
             <button
               type="button"
@@ -1127,6 +1159,8 @@ const Shop = () => {
             >
               <option value="TZS">{t("tzs")}</option>
               <option value="USD">{t("usd")}</option>
+              <option value="EUR">EUR</option>
+              <option value="PI">Pi</option>
             </select>
 
             <label htmlFor="phone">{t("sellerContact")} *</label>
