@@ -14,6 +14,8 @@ interface MineralListing {
   mineralType: string;
   description: string;
   location: string;
+  latitude?: number;
+  longitude?: number;
   weight: number;
   weightUnit: string;
   price: number;
@@ -151,6 +153,11 @@ const Shop = () => {
   const [form, setForm] = useState<ListingForm>(initialForm);
   const [filters, setFilters] = useState<ListingFilters>(initialFilters);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [formGpsPosition, setFormGpsPosition] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [searchGpsPosition, setSearchGpsPosition] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [gpsRadiusKm, setGpsRadiusKm] = useState("100");
+  const [isLocating, setIsLocating] = useState(false);
+  const [gpsMessage, setGpsMessage] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
@@ -182,6 +189,52 @@ const Shop = () => {
   useEffect(() => {
     void fetchListings();
   }, [fetchListings]);
+
+  const requestDeviceLocation = (
+    onSuccess: (position: { latitude: number; longitude: number }) => void
+  ) => {
+    setGpsMessage("");
+    if (!navigator.geolocation) {
+      setGpsMessage("GPS haipatikani kwenye kifaa au kivinjari hiki.");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coordinates = {
+          latitude: Number(position.coords.latitude.toFixed(6)),
+          longitude: Number(position.coords.longitude.toFixed(6)),
+        };
+        onSuccess(coordinates);
+        setIsLocating(false);
+        setGpsMessage("GPS imefanikiwa kutambua eneo lako.");
+      },
+      (geoError) => {
+        setIsLocating(false);
+        const message = geoError.code === 1
+          ? "Ruhusu GFAMOUS kutumia location kwenye mipangilio ya simu."
+          : geoError.code === 2
+            ? "Eneo halijatambulika. Washa GPS na ujaribu tena."
+            : "Muda wa kutambua eneo umeisha. Jaribu tena.";
+        setGpsMessage(message);
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
+    );
+  };
+
+  const distanceInKm = (
+    first: { latitude: number; longitude: number },
+    second: { latitude: number; longitude: number }
+  ) => {
+    const toRadians = (degrees: number) => degrees * Math.PI / 180;
+    const earthRadiusKm = 6371;
+    const dLat = toRadians(second.latitude - first.latitude);
+    const dLon = toRadians(second.longitude - first.longitude);
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRadians(first.latitude)) * Math.cos(toRadians(second.latitude)) *
+      Math.sin(dLon / 2) ** 2;
+    return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
 
   const handleInputChange = (
     event: ChangeEvent<
@@ -246,6 +299,11 @@ const Shop = () => {
       listing.currency.toUpperCase() !== filters.currency
     ) {
       return false;
+    }
+
+    if (searchGpsPosition) {
+      if (typeof listing.latitude !== "number" || typeof listing.longitude !== "number") return false;
+      if (distanceInKm(searchGpsPosition, { latitude: listing.latitude, longitude: listing.longitude }) > Number(gpsRadiusKm)) return false;
     }
 
     // Bei za sarafu tofauti hazilinganishwi pamoja.
@@ -512,6 +570,8 @@ const Shop = () => {
         mineralType: form.mineralType.trim(),
         description: form.description.trim(),
         location: form.location.trim(),
+        latitude: formGpsPosition?.latitude,
+        longitude: formGpsPosition?.longitude,
         weight,
         weightUnit: form.weightUnit,
         price,
@@ -526,6 +586,7 @@ const Shop = () => {
       );
 
       setForm(initialForm);
+      setFormGpsPosition(null);
       setSelectedFiles([]);
 
       if (fileInputRef.current) {
@@ -716,6 +777,32 @@ const Shop = () => {
               ))}
             </select>
 
+            <button
+              type="button"
+              style={{ ...buttonStyle, marginBottom: "12px", background: "#b8860b" }}
+              disabled={isLocating}
+              onClick={() => requestDeviceLocation(setSearchGpsPosition)}
+            >
+              {isLocating ? "Inatafuta GPS..." : searchGpsPosition ? "Tumia upya GPS yangu" : "Tafuta madini karibu nami (GPS)"}
+            </button>
+            {searchGpsPosition && (
+              <div style={{ marginBottom: "12px", fontSize: "13px" }}>
+                GPS: {searchGpsPosition.latitude}, {searchGpsPosition.longitude}
+                <button type="button" onClick={() => setSearchGpsPosition(null)} style={{ ...buttonStyle, padding: "6px 10px", marginLeft: "8px", background: "#555" }}>Zima GPS</button>
+                <label htmlFor="gpsRadiusKm" style={{ display: "block", marginTop: "8px" }}>Umbali wa kutafuta</label>
+                <select id="gpsRadiusKm" value={gpsRadiusKm} onChange={(event) => setGpsRadiusKm(event.target.value)} style={inputStyle}>
+                  <option value="10">Ndani ya km 10</option>
+                  <option value="25">Ndani ya km 25</option>
+                  <option value="50">Ndani ya km 50</option>
+                  <option value="100">Ndani ya km 100</option>
+                  <option value="250">Ndani ya km 250</option>
+                  <option value="500">Ndani ya km 500</option>
+                  <option value="1000">Ndani ya km 1,000</option>
+                </select>
+              </div>
+            )}
+            {gpsMessage && <p role="status" style={{ color: "#8a641c" }}>{gpsMessage}</p>}
+
             <label htmlFor="filterLocation">Location / Eneo</label>
             <select
               id="filterLocation"
@@ -890,6 +977,9 @@ const Shop = () => {
 
                   <p>
                     <strong>{t("location")}:</strong> {listing.location}
+                    {typeof listing.latitude === "number" && typeof listing.longitude === "number" && (
+                      <>{" · "}<a href={`https://www.google.com/maps?q=${listing.latitude},${listing.longitude}`} target="_blank" rel="noreferrer">Fungua ramani</a></>
+                    )}
                   </p>
 
                   <p>
@@ -964,6 +1054,19 @@ const Shop = () => {
             />
 
             <label htmlFor="location">{t("location")} *</label>
+            <button
+              type="button"
+              style={{ ...buttonStyle, marginBottom: "10px", background: "#b8860b" }}
+              disabled={isLocating}
+              onClick={() => requestDeviceLocation(setFormGpsPosition)}
+            >
+              {isLocating ? "Inatambua eneo..." : formGpsPosition ? "Sasisha GPS ya tangazo" : "Tambua eneo langu kwa GPS"}
+            </button>
+            {formGpsPosition && (
+              <p style={{ fontSize: "13px", color: "#555" }}>
+                GPS imehifadhiwa: {formGpsPosition.latitude}, {formGpsPosition.longitude}. Weka pia jina la eneo ili wanunuzi walielewe.
+              </p>
+            )}
             <input
               id="location"
               name="location"
