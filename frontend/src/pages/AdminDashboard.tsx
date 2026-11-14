@@ -18,10 +18,23 @@ interface MineralListing {
   createdAt?: string;
 }
 
+interface InspectionRequest {
+  _id: string;
+  buyerUsername?: string;
+  sellerUsername?: string;
+  mineralType?: string;
+  listingLocation?: string;
+  reason: string;
+  status: "requested" | "reviewing" | "declined" | string;
+  createdAt?: string;
+}
+
 export default function AdminDashboard() {
   const { t, language, setLanguage } = useLanguage();
   const [pending, setPending] = useState<MineralListing[]>([]);
   const [approved, setApproved] = useState<MineralListing[]>([]);
+  const [inspectionRequests, setInspectionRequests] = useState<InspectionRequest[]>([]);
+  const [loadingInspections, setLoadingInspections] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingApproved, setLoadingApproved] = useState(true);
   const [busyId, setBusyId] = useState("");
@@ -71,10 +84,32 @@ export default function AdminDashboard() {
     }
   }, [t]);
 
+  const loadInspectionRequests = useCallback(async () => {
+    setLoadingInspections(true);
+    try {
+      const response = await axiosClient.get("/mineral-listings/inspection-requests");
+      setInspectionRequests(
+        Array.isArray(response.data?.requests) ? response.data.requests : []
+      );
+    } catch (err: any) {
+      console.error(err);
+      setError(
+        err?.response?.status === 403
+          ? t("adminOnly")
+          : err?.response?.status === 401
+          ? t("piLoginRequired")
+          : t("inspectionLoadFailed")
+      );
+    } finally {
+      setLoadingInspections(false);
+    }
+  }, [t]);
+
   useEffect(() => {
     void loadPending();
     void loadApproved();
-  }, [loadPending, loadApproved]);
+    void loadInspectionRequests();
+  }, [loadPending, loadApproved, loadInspectionRequests]);
 
   const reviewListing = async (
     listing: MineralListing,
@@ -114,6 +149,29 @@ export default function AdminDashboard() {
           ? t("adminOnly")
           : t("decisionFailed")
       );
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const updateInspectionStatus = async (
+    request: InspectionRequest,
+    status: "reviewing" | "declined"
+  ) => {
+    if (!window.confirm(status === "reviewing" ? t("inspectionReviewConfirm") : t("inspectionDeclineConfirm"))) return;
+    setBusyId(request._id);
+    setError("");
+    setMessage("");
+    try {
+      await axiosClient.patch(
+        `/mineral-listings/inspection-requests/${request._id}/status`,
+        { status }
+      );
+      await loadInspectionRequests();
+      setMessage(status === "reviewing" ? t("inspectionReviewSaved") : t("inspectionDeclineSaved"));
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.response?.status === 403 ? t("adminOnly") : t("inspectionUpdateFailed"));
     } finally {
       setBusyId("");
     }
@@ -319,6 +377,47 @@ export default function AdminDashboard() {
       )}
 
       {pending.map((listing) => renderListing(listing, false))}
+
+      <section style={card}>
+        <h2>{t("inspectionRequests")}: {inspectionRequests.length}</h2>
+        <button
+          type="button"
+          style={{ ...button, background: "#176b43" }}
+          onClick={() => void loadInspectionRequests()}
+          disabled={loadingInspections}
+        >
+          {loadingInspections ? t("loading") : t("refresh")}
+        </button>
+        <p>{t("inspectionNotice")}</p>
+      </section>
+
+      {loadingInspections && <p>{t("loading")}</p>}
+      {!loadingInspections && inspectionRequests.length === 0 && (
+        <section style={card}>{t("noInspectionRequests")}</section>
+      )}
+      {inspectionRequests.map((request) => (
+        <article key={request._id} style={card}>
+          <h3>{request.mineralType || t("unknownMineral")}</h3>
+          <p><strong>{t("buyer")}:</strong> @{request.buyerUsername || t("noSellerName")}</p>
+          <p><strong>{t("seller")}:</strong> @{request.sellerUsername || t("noSellerName")}</p>
+          <p><strong>{t("location")}:</strong> {request.listingLocation || "—"}</p>
+          <p><strong>{t("inspectionReason")}:</strong> {request.reason}</p>
+          <p><strong>{t("inspectionStatus")}:</strong> {t(request.status === "requested" ? "inspectionRequested" : request.status === "reviewing" ? "inspectionReviewing" : "inspectionDeclined")}</p>
+          <p><strong>{t("requestDate")}:</strong> {request.createdAt ? new Date(request.createdAt).toLocaleString() : "—"}</p>
+          {request.status !== "declined" && (
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
+              {request.status !== "reviewing" && (
+                <button type="button" style={{ ...button, background: "#176b43" }} onClick={() => void updateInspectionStatus(request, "reviewing")} disabled={busyId === request._id}>
+                  {t("markReviewing")}
+                </button>
+              )}
+              <button type="button" style={{ ...button, background: "#9b2929" }} onClick={() => void updateInspectionStatus(request, "declined")} disabled={busyId === request._id}>
+                {t("declineRequest")}
+              </button>
+            </div>
+          )}
+        </article>
+      ))}
 
       <section style={card}>
         <h2>{t("approved")}: {approved.length}</h2>
