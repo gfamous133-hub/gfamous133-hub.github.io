@@ -44,16 +44,6 @@ interface CloudinarySignature {
   signature: string;
 }
 
-interface ListingFilters {
-  mineralType: string;
-  location: string;
-  minWeight: string;
-  maxWeight: string;
-  minPrice: string;
-  maxPrice: string;
-  currency: string;
-}
-
 const initialForm: ListingForm = {
   mineralType: "",
   description: "",
@@ -64,16 +54,6 @@ const initialForm: ListingForm = {
   currency: "TZS",
   contact: "",
   imageUrls: "",
-};
-
-const initialFilters: ListingFilters = {
-  mineralType: "",
-  location: "",
-  minWeight: "",
-  maxWeight: "",
-  minPrice: "",
-  maxPrice: "",
-  currency: "ALL",
 };
 
 const MAX_IMAGES = 5;
@@ -122,10 +102,6 @@ const buttonStyle = {
   fontWeight: "bold" as const,
 };
 
-const weightInGrams = (weight: number, unit: string): number => {
-  return unit.toLowerCase() === "kg" ? weight * 1000 : weight;
-};
-
 const Shop = () => {
   const {
     user,
@@ -140,7 +116,6 @@ const Shop = () => {
 
   const [listings, setListings] = useState<MineralListing[]>([]);
   const [form, setForm] = useState<ListingForm>(initialForm);
-  const [filters, setFilters] = useState<ListingFilters>(initialFilters);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -186,76 +161,6 @@ const Shop = () => {
       [name]: value,
     }));
   };
-
-  const handleFilterChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = event.target;
-
-    setFilters((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  };
-
-  const filteredListings = listings.filter((listing) => {
-    const mineralSearch = filters.mineralType.trim().toLowerCase();
-    const locationSearch = filters.location.trim().toLowerCase();
-
-    if (
-      mineralSearch &&
-      !listing.mineralType.toLowerCase().includes(mineralSearch)
-    ) {
-      return false;
-    }
-
-    if (
-      locationSearch &&
-      !listing.location.toLowerCase().includes(locationSearch)
-    ) {
-      return false;
-    }
-
-    const grams = weightInGrams(
-      Number(listing.weight),
-      listing.weightUnit || "g"
-    );
-
-    if (filters.minWeight !== "" && grams < Number(filters.minWeight)) {
-      return false;
-    }
-
-    if (filters.maxWeight !== "" && grams > Number(filters.maxWeight)) {
-      return false;
-    }
-
-    if (
-      filters.currency !== "ALL" &&
-      listing.currency.toUpperCase() !== filters.currency
-    ) {
-      return false;
-    }
-
-    // Bei za sarafu tofauti hazilinganishwi pamoja.
-    // Chagua TZS au USD ili kutumia kichujio cha bei.
-    if (filters.currency !== "ALL") {
-      if (
-        filters.minPrice !== "" &&
-        Number(listing.price) < Number(filters.minPrice)
-      ) {
-        return false;
-      }
-
-      if (
-        filters.maxPrice !== "" &&
-        Number(listing.price) > Number(filters.maxPrice)
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  });
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     setError("");
@@ -522,7 +427,10 @@ const Shop = () => {
 
       void fetchListings();
     } catch (err) {
-      console.error(`Error during ${currentStage}:`, err);
+      console.error(
+        `Error during ${currentStage}:`,
+        err
+      );
 
       const message =
         err instanceof Error
@@ -637,7 +545,9 @@ const Shop = () => {
             {isLoadingListings ? "Inapakia..." : "Onyesha upya"}
           </button>
 
-          {isLoadingListings && <p>Inapakia matangazo...</p>}
+          {isLoadingListings && (
+            <p>Inapakia matangazo...</p>
+          )}
 
           {error && (
             <p role="alert" style={{ color: "#b00020" }}>
@@ -652,184 +562,6 @@ const Shop = () => {
             </p>
           )}
 
-          {listings.length > 0 && (
-            <div
-              style={{
-                background: "#f5f8f6",
-                border: "1px solid #dce7df",
-                borderRadius: "10px",
-                padding: "15px",
-                marginTop: "20px",
-              }}
-            >
-              <h3 style={{ marginTop: 0 }}>Tafuta na Chuja Matangazo</h3>
-
-              <label htmlFor="filterMineral">
-                Aina ya madini
-              </label>
-              <input
-                id="filterMineral"
-                name="mineralType"
-                value={filters.mineralType}
-                onChange={handleFilterChange}
-                placeholder="Mfano: Gold"
-                style={inputStyle}
-              />
-
-              <label htmlFor="filterLocation">
-                Eneo
-              </label>
-              <input
-                id="filterLocation"
-                name="location"
-                value={filters.location}
-                onChange={handleFilterChange}
-                placeholder="Mfano: Nyamongo, Mara"
-                style={inputStyle}
-              />
-
-              <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
-                Uzito (gramu)
-              </p>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: "10px",
-                }}
-              >
-                <div>
-                  <label htmlFor="minWeight">Kuanzia (g)</label>
-                  <input
-                    id="minWeight"
-                    name="minWeight"
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={filters.minWeight}
-                    onChange={handleFilterChange}
-                    placeholder="Mfano: 1"
-                    style={inputStyle}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="maxWeight">Hadi (g)</label>
-                  <input
-                    id="maxWeight"
-                    name="maxWeight"
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={filters.maxWeight}
-                    onChange={handleFilterChange}
-                    placeholder="Mfano: 1000"
-                    style={inputStyle}
-                  />
-                </div>
-              </div>
-
-              <label htmlFor="filterCurrency">
-                Sarafu ya bei
-              </label>
-              <select
-                id="filterCurrency"
-                name="currency"
-                value={filters.currency}
-                onChange={handleFilterChange}
-                style={inputStyle}
-              >
-                <option value="ALL">Sarafu zote</option>
-                <option value="TZS">Tanzanian Shilling (TZS)</option>
-                <option value="USD">US Dollar (USD)</option>
-              </select>
-
-              <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
-                Kiwango cha bei
-              </p>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: "10px",
-                }}
-              >
-                <div>
-                  <label htmlFor="minPrice">Bei ya chini</label>
-                  <input
-                    id="minPrice"
-                    name="minPrice"
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={filters.minPrice}
-                    onChange={handleFilterChange}
-                    placeholder="Bei ya chini"
-                    disabled={filters.currency === "ALL"}
-                    style={{
-                      ...inputStyle,
-                      background:
-                        filters.currency === "ALL" ? "#eeeeee" : "white",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="maxPrice">Bei ya juu</label>
-                  <input
-                    id="maxPrice"
-                    name="maxPrice"
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={filters.maxPrice}
-                    onChange={handleFilterChange}
-                    placeholder="Bei ya juu"
-                    disabled={filters.currency === "ALL"}
-                    style={{
-                      ...inputStyle,
-                      background:
-                        filters.currency === "ALL" ? "#eeeeee" : "white",
-                    }}
-                  />
-                </div>
-              </div>
-
-              {filters.currency === "ALL" && (
-                <p style={{ fontSize: "13px", color: "#666" }}>
-                  Chagua TZS au USD ili kutumia kichujio cha bei.
-                </p>
-              )}
-
-              <button
-                type="button"
-                style={{
-                  ...buttonStyle,
-                  background: "#555555",
-                  width: "100%",
-                }}
-                onClick={() => setFilters(initialFilters)}
-              >
-                Futa Vichujio
-              </button>
-
-              <p style={{ marginBottom: 0, fontWeight: "bold" }}>
-                Matokeo: {filteredListings.length} kati ya {listings.length} matangazo
-              </p>
-            </div>
-          )}
-
-          {!isLoadingListings &&
-            listings.length > 0 &&
-            filteredListings.length === 0 && (
-              <p style={{ marginTop: "20px" }}>
-                Hakuna tangazo linalolingana na vichujio ulivyochagua.
-                Jaribu kubadilisha au kufuta vichujio.
-              </p>
-            )}
-
           <div
             style={{
               display: "grid",
@@ -838,7 +570,7 @@ const Shop = () => {
               marginTop: "20px",
             }}
           >
-            {filteredListings.map((listing, index) => (
+            {listings.map((listing, index) => (
               <article
                 key={listing._id || listing.id || index}
                 style={{
@@ -848,36 +580,20 @@ const Shop = () => {
                   background: "white",
                 }}
               >
-                {Array.isArray(listing.imageUrls) &&
-                listing.imageUrls.length > 0 ? (
-                  <div
+                {listing.imageUrls?.[0] ? (
+                  <img
+                    src={listing.imageUrls[0]}
+                    alt={listing.mineralType}
+                    loading="lazy"
                     style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        listing.imageUrls.length === 1
-                          ? "1fr"
-                          : "repeat(2, minmax(0, 1fr))",
-                      gap: "4px",
+                      width: "100%",
+                      height: "190px",
+                      objectFit: "cover",
                     }}
-                  >
-                    {listing.imageUrls.map((imageUrl, imageIndex) => (
-                      <img
-                        key={`${imageUrl}-${imageIndex}`}
-                        src={imageUrl}
-                        alt={`${listing.mineralType} picha ${imageIndex + 1}`}
-                        loading="lazy"
-                        style={{
-                          width: "100%",
-                          height: "190px",
-                          objectFit: "cover",
-                          display: "block",
-                        }}
-                        onError={(event) => {
-                          event.currentTarget.style.display = "none";
-                        }}
-                      />
-                    ))}
-                  </div>
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
+                    }}
+                  />
                 ) : (
                   <div
                     style={{
@@ -909,7 +625,7 @@ const Shop = () => {
 
                   <p>
                     <strong>Bei:</strong>{" "}
-                    {Number(listing.price).toLocaleString()} {listing.currency}
+                    {listing.price.toLocaleString()} {listing.currency}
                   </p>
 
                   <p>
@@ -1104,7 +820,7 @@ const Shop = () => {
                     key={`${file.name}-${index}`}
                     style={{ fontSize: "13px" }}
                   >
-                    {file.name} — {(file.size / (1024 * 1024)).toFixed(2)} MB
+                    {file.name} 鈥� {(file.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 ))}
 
