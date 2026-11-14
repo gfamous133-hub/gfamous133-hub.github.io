@@ -70,7 +70,7 @@ export default function AdminDashboard() {
     } finally {
       setLoadingApproved(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void loadPending();
@@ -271,9 +271,22 @@ export default function AdminDashboard() {
       }}>
         <h1>GFAMOUS {t("admin")}</h1>
         <p>{t("moderation")}</p>
-        <Link to="/" style={{ color: "#fff" }}>
-          {t("backToMarket")}
-        </Link>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <Link to="/" style={{ color: "#fff" }}>
+            {t("backToMarket")}
+          </Link>
+          <label htmlFor="admin-language">{t("language")}</label>
+          <select
+            id="admin-language"
+            value={language}
+            onChange={(event) => setLanguage(event.target.value as typeof language)}
+            style={{ padding: 8, borderRadius: 6 }}
+          >
+            {languageOptions.map((option) => (
+              <option key={option.code} value={option.code}>{option.label}</option>
+            ))}
+          </select>
+        </div>
       </header>
 
       {error && (
