@@ -211,8 +211,8 @@ export default function AdminDashboard() {
   };
 
   const card: React.CSSProperties = {
-    background: "#fffdf6",
-    border: "1px solid #ead58a",
+    background: "#fff8dc",
+    border: "1px solid #d9a514",
     borderRadius: 12,
     padding: 18,
     marginBottom: 16,
@@ -316,10 +316,10 @@ export default function AdminDashboard() {
       padding: 20,
       fontFamily: "Arial, sans-serif",
       color: "#17233e",
-      background: "#fffaf0",
+      background: "#fff1b8",
     }}>
       <header style={{
-        background: "linear-gradient(135deg, #f4d35e 0%, #d9a514 100%)",
+        background: "linear-gradient(135deg, #ffe680 0%, #e0aa12 55%, #c58a00 100%)",
         color: "#17233e",
         padding: 22,
         borderRadius: 12,
@@ -361,7 +361,7 @@ export default function AdminDashboard() {
         <h2>{t("pending")}: {pending.length}</h2>
         <button
           type="button"
-          style={{ ...button, background: "#10213b" }}
+          style={{ ...button, background: "#f2c230" }}
           onClick={() => void loadPending()}
           disabled={loading}
         >
