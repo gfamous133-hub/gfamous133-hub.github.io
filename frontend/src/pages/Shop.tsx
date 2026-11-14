@@ -723,8 +723,8 @@ const Shop = () => {
       <main style={pageStyle}>
         <section
           style={{
-            background: "linear-gradient(135deg, #10213b 0%, #1b3558 58%, #d8aa35 160%)",
-            color: "#fff8dc",
+            background: "linear-gradient(135deg, #f7d45b 0%, #e9b936 58%, #d8aa35 100%)",
+            color: "#17243b",
             padding: "35px 20px",
             borderRadius: "14px",
             marginBottom: "25px",
@@ -739,7 +739,7 @@ const Shop = () => {
             {t("welcome")}
           </p>
 
-          <p style={{ fontSize: "14px" }}>
+          <p style={{ fontSize: "14px", fontWeight: 700 }}>
             {t("tagline")}
           </p>
         </section>
