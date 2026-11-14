@@ -95,17 +95,40 @@ const allowedImageTypes = [
   "image/webp",
 ];
 
+// Chaguo za madini zinazotumika kwenye utafutaji na fomu ya tangazo.
+const MINERAL_OPTIONS = [
+  { value: "Gold", label: "Gold / Dhahabu" },
+  { value: "Silver", label: "Silver / Fedha" },
+  { value: "Copper", label: "Copper / Shaba" },
+  { value: "Diamond", label: "Diamond / Almasi" },
+  { value: "Tanzanite", label: "Tanzanite" },
+  { value: "Sapphire", label: "Sapphire / Yakuti samawi" },
+  { value: "Ruby", label: "Ruby / Yakuti nyekundu" },
+  { value: "Emerald", label: "Emerald / Zumaridi" },
+  { value: "Tourmaline", label: "Tourmaline" },
+  { value: "Garnet", label: "Garnet" },
+  { value: "Quartz", label: "Quartz / Jiwe la quartz" },
+  { value: "Graphite", label: "Graphite" },
+  { value: "Tin", label: "Tin / Bati" },
+  { value: "Iron", label: "Iron / Chuma" },
+  { value: "Nickel", label: "Nickel" },
+  { value: "Cobalt", label: "Cobalt" },
+  { value: "Lithium", label: "Lithium" },
+  { value: "Gypsum", label: "Gypsum / Jasiwe" },
+  { value: "Other", label: "Other / Madini mengine" },
+];
+
 const pageStyle = {
   maxWidth: "1100px",
   margin: "0 auto",
   padding: "20px",
   fontFamily: "Arial, sans-serif",
-  color: "#202923",
+  color: "#17243b",
 } as const;
 
 const cardStyle = {
   background: "#ffffff",
-  border: "1px solid #e4e8e1",
+  border: "1px solid #d8aa35",
   borderRadius: "12px",
   padding: "18px",
   marginBottom: "18px",
@@ -116,7 +139,7 @@ const inputStyle = {
   padding: "12px",
   marginTop: "6px",
   marginBottom: "14px",
-  border: "1px solid #d8ded6",
+  border: "1px solid #d8aa35",
   borderRadius: "7px",
   boxSizing: "border-box" as const,
   fontSize: "15px",
@@ -700,8 +723,8 @@ const Shop = () => {
       <main style={pageStyle}>
         <section
           style={{
-            background: "#123d2b",
-            color: "white",
+            background: "linear-gradient(135deg, #10213b 0%, #1b3558 58%, #d8aa35 160%)",
+            color: "#fff8dc",
             padding: "35px 20px",
             borderRadius: "14px",
             marginBottom: "25px",
@@ -754,8 +777,8 @@ const Shop = () => {
           {/* Filters zinaonekana hata kama hakuna matangazo */}
           <div
             style={{
-              background: "#f5f8f6",
-              border: "1px solid #dce7df",
+              background: "#fff8e5",
+              border: "1px solid #d8aa35",
               borderRadius: "10px",
               padding: "15px",
               marginTop: "20px",
@@ -771,10 +794,14 @@ const Shop = () => {
               onChange={handleFilterChange}
               style={inputStyle}
             >
-              <option value="">Aina zote za madini</option>
-              {Array.from(new Set(listings.map((item) => item.mineralType).filter(Boolean))).sort().map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
+              <option value="">Madini yote / All minerals</option>
+              {Array.from(new Set([
+                ...MINERAL_OPTIONS.map((item) => item.value),
+                ...listings.map((item) => item.mineralType).filter(Boolean),
+              ])).sort().map((type) => {
+                const option = MINERAL_OPTIONS.find((item) => item.value.toLowerCase() === type.toLowerCase());
+                return <option key={type} value={type}>{option?.label || type}</option>;
+              })}
             </select>
 
             <button
@@ -1040,18 +1067,10 @@ const Shop = () => {
               style={inputStyle}
               required
             >
-              <option value="">Chagua aina ya madini</option>
-              <option value="Gold">Gold / Dhahabu</option>
-              <option value="Silver">Silver / Fedha</option>
-              <option value="Copper">Copper / Shaba</option>
-              <option value="Tanzanite">Tanzanite</option>
-              <option value="Diamond">Diamond / Almasi</option>
-              <option value="Sapphire">Sapphire</option>
-              <option value="Ruby">Ruby</option>
-              <option value="Tourmaline">Tourmaline</option>
-              <option value="Graphite">Graphite</option>
-              <option value="Tin">Tin / Bati</option>
-              <option value="Other">Other / Madini mengine (fafanua kwenye maelezo)</option>
+              <option value="">Chagua aina ya madini / Select mineral</option>
+              {MINERAL_OPTIONS.map((mineral) => (
+                <option key={mineral.value} value={mineral.value}>{mineral.label}</option>
+              ))}
             </select>
 
             <label htmlFor="description">{t("description")} *</label>
@@ -1211,7 +1230,7 @@ const Shop = () => {
             {selectedFiles.length > 0 && (
               <div
                 style={{
-                  background: "#f2f7f3",
+                  background: "#fff8e5",
                   padding: "12px",
                   borderRadius: "7px",
                   marginBottom: "14px",
