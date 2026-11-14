@@ -1,17 +1,98 @@
-body {
-  font-family: sans-serif;
+:root {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #202923;
+  background: #f6f7f3;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --gfamous-gold: #d6a62e;
+  --gfamous-gold-dark: #a87913;
+  --gfamous-forest: #176b43;
+  --gfamous-charcoal: #17231e;
+  --gfamous-surface: #ffffff;
+  --gfamous-muted: #68736b;
 }
 
-h1, h2, h3 {
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #f6f7f3;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #202923;
+  background:
+    radial-gradient(ellipse at top right, rgba(214, 166, 46, 0.10), transparent 34rem),
+    #f6f7f3;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+button:not(:disabled):hover {
+  filter: brightness(1.06);
+  box-shadow: 0 4px 12px rgba(23, 35, 30, 0.14);
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+input,
+select,
+textarea {
+  color: #202923;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid rgba(214, 166, 46, 0.45);
+  border-color: #c69624 !important;
+}
+
+h1,
+h2,
+h3 {
   margin-top: 0;
   margin-bottom: 16px;
+  color: #202923;
 }
 
-h4, h5, h6 {
+h4,
+h5,
+h6 {
   margin-top: 0;
   margin-bottom: 8px;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
+a {
+  color: #176b43;
+}
+
+img {
+  max-width: 100%;
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 15px;
+  }
 }
