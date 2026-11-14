@@ -13,7 +13,7 @@ interface HeaderProps {
 
 const headerStyle: CSSProperties = {
   padding: 12,
-  backgroundColor: "#172b24",
+  backgroundColor: "#17231e",
   color: "white",
   width: "100%",
   boxSizing: "border-box",
@@ -34,8 +34,8 @@ const userSectionStyle: CSSProperties = {
 const buttonStyle: CSSProperties = {
   padding: "8px 12px",
   borderRadius: 6,
-  border: "1px solid white",
-  backgroundColor: "transparent",
+  border: "1px solid #d6a62e",
+  backgroundColor: "rgba(255,255,255,0.06)",
   color: "white",
   cursor: "pointer",
   textDecoration: "none",
@@ -68,7 +68,7 @@ const Header = ({
           style={{
             padding: "8px 9px",
             borderRadius: 6,
-            border: "1px solid white",
+            border: "1px solid #d6a62e",
             background: "#fff",
             color: "#172b24",
             maxWidth: 145,
