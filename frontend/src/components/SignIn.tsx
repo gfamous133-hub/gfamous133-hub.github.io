@@ -30,7 +30,8 @@ const buttonContainerStyle: CSSProperties = {
   gap: "1rem",
 };
 
-const SignIn = ({ onSignIn, onModalClose, disabled }: SignInProps) => {\n  const { t } = useLanguage();
+const SignIn = ({ onSignIn, onModalClose, disabled }: SignInProps) => {
+  const { t } = useLanguage();
   return (
     <div style={modalStyle}>
       <p style={{ fontWeight: "bold" }}>{t("signInPrompt")}</p>
