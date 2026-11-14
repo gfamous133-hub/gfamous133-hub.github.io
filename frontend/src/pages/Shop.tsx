@@ -883,7 +883,7 @@ const Shop = () => {
               name="mineralType"
               value={form.mineralType}
               onChange={handleInputChange}
-              placeholder="Mfano: Gold, Tanzanite, Copper"
+              placeholder={t("mineralTypePlaceholder")}
               style={inputStyle}
               required
             />
