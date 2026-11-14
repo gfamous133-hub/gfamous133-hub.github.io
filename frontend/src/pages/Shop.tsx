@@ -580,20 +580,36 @@ const Shop = () => {
                   background: "white",
                 }}
               >
-                {listing.imageUrls?.[0] ? (
-                  <img
-                    src={listing.imageUrls[0]}
-                    alt={listing.mineralType}
-                    loading="lazy"
+                {Array.isArray(listing.imageUrls) &&
+                listing.imageUrls.length > 0 ? (
+                  <div
                     style={{
-                      width: "100%",
-                      height: "190px",
-                      objectFit: "cover",
+                      display: "grid",
+                      gridTemplateColumns:
+                        listing.imageUrls.length === 1
+                          ? "1fr"
+                          : "repeat(2, minmax(0, 1fr))",
+                      gap: "4px",
                     }}
-                    onError={(event) => {
-                      event.currentTarget.style.display = "none";
-                    }}
-                  />
+                  >
+                    {listing.imageUrls.map((imageUrl, imageIndex) => (
+                      <img
+                        key={`${imageUrl}-${imageIndex}`}
+                        src={imageUrl}
+                        alt={`${listing.mineralType} picha ${imageIndex + 1}`}
+                        loading="lazy"
+                        style={{
+                          width: "100%",
+                          height: "190px",
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ))}
+                  </div>
                 ) : (
                   <div
                     style={{
