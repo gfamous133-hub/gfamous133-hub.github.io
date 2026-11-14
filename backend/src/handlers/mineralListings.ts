@@ -130,6 +130,8 @@ export default function mountMineralListingEndpoints(router: Router) {
         price,
         currency,
         contact,
+        phone,
+        whatsapp,
         imageUrls,
       } = req.body;
 
@@ -141,7 +143,8 @@ export default function mountMineralListingEndpoints(router: Router) {
         !weightUnit ||
         price === undefined ||
         !currency ||
-        !contact
+        !(phone || contact) ||
+        !(whatsapp || phone || contact)
       ) {
         return res.status(400).json({
           error: "Please complete all required fields",
@@ -182,7 +185,9 @@ export default function mountMineralListingEndpoints(router: Router) {
         weightUnit: String(weightUnit),
         price: Number(price),
         currency: String(currency),
-        contact: String(contact).trim(),
+        phone: String(phone || contact).trim(),
+        whatsapp: String(whatsapp || phone || contact).trim(),
+        contact: String(phone || contact).trim(),
         imageUrls: images,
         status: "pending",
         createdAt: new Date(),
