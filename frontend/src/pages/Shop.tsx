@@ -118,7 +118,6 @@ const Shop = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const [isLoadingListings, setIsLoadingListings] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -194,14 +193,43 @@ const Shop = () => {
     setSelectedFiles(files);
   };
 
+  // Upload images directly from the phone to Cloudinary.
   const uploadImages = async (files: File[]): Promise<string[]> => {
     if (files.length === 0) {
       return [];
     }
 
-    const signatureResponse = await axiosClient.post<CloudinarySignature>(
-      "/mineral-listings/images/sign"
-    );
+    let signatureResponse;
+
+    try {
+      signatureResponse = await axiosClient.post<CloudinarySignature>(
+        "/mineral-listings/images/sign"
+      );
+    } catch (err) {
+      console.error("Cloudinary signature request failed:", err);
+
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+
+        if (status === 401) {
+          throw new Error("Session yako imeisha. Ingia tena kwa Pi.");
+        }
+
+        if (status === 503) {
+          throw new Error(
+            "Huduma ya kupakia picha haijawekwa sawa kwenye server."
+          );
+        }
+
+        throw new Error(
+          `Imeshindikana kupata ruhusa ya kupakia picha. HTTP: ${
+            status || "hakuna majibu kutoka server"
+          }.`
+        );
+      }
+
+      throw new Error("Imeshindikana kupata signature ya picha.");
+    }
 
     const {
       cloudName,
@@ -209,10 +237,17 @@ const Shop = () => {
       timestamp,
       folder,
       signature,
-    } = signatureResponse.data;
+    } = signatureResponse.data || ({} as CloudinarySignature);
 
     if (!cloudName || !apiKey || !timestamp || !folder || !signature) {
-      throw new Error("Taarifa za kupakia picha hazijakamilika.");
+      console.error(
+        "Incomplete Cloudinary signature response:",
+        signatureResponse.data
+      );
+
+      throw new Error(
+        "Server imerudisha taarifa za Cloudinary ambazo hazijakamilika."
+      );
     }
 
     const uploadedUrls: string[] = [];
@@ -226,19 +261,53 @@ const Shop = () => {
       uploadData.append("folder", folder);
       uploadData.append("signature", signature);
 
-      const uploadResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        {
-          method: "POST",
-          body: uploadData,
-        }
-      );
+      let uploadResponse: Response;
 
-      const uploadResult = await uploadResponse.json();
+      try {
+        uploadResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          {
+            method: "POST",
+            body: uploadData,
+          }
+        );
+      } catch (err) {
+        console.error("Cloudinary network request failed:", err);
+
+        throw new Error(
+          `Pi Browser imeshindwa kuwasiliana na Cloudinary wakati wa kupakia ${file.name}. Hakikisha intaneti inafanya kazi, kisha jaribu tena. Maelezo: ${
+            err instanceof Error ? err.message : "Network error"
+          }`
+        );
+      }
+
+      let uploadResult: {
+        secure_url?: string;
+        error?: { message?: string };
+      };
+
+      try {
+        uploadResult = await uploadResponse.json();
+      } catch (err) {
+        console.error("Cloudinary returned an unreadable response:", err);
+
+        throw new Error(
+          `Cloudinary imerudisha majibu yasiyosomeka kwa picha ${file.name}. HTTP ${uploadResponse.status}.`
+        );
+      }
 
       if (!uploadResponse.ok || !uploadResult.secure_url) {
+        console.error("Cloudinary upload rejected:", {
+          status: uploadResponse.status,
+          result: uploadResult,
+          fileName: file.name,
+        });
+
         throw new Error(
-          uploadResult.error?.message || "Imeshindikana kupakia picha."
+          `Cloudinary imekataa picha ${file.name}: ${
+            uploadResult.error?.message ||
+            `HTTP ${uploadResponse.status}`
+          }`
         );
       }
 
@@ -320,8 +389,12 @@ const Shop = () => {
 
     setIsSubmitting(true);
 
+    let currentStage = "kupakia picha kutoka Gallery";
+
     try {
       const uploadedUrls = await uploadImages(selectedFiles);
+
+      currentStage = "kutuma tangazo kwenye server";
 
       const imageUrls = [
         ...existingImageUrls,
@@ -351,13 +424,17 @@ const Shop = () => {
         fileInputRef.current.value = "";
       }
 
+      void fetchListings();
     } catch (err) {
-      console.error("Error submitting mineral listing:", err);
+      console.error(
+        `Error during ${currentStage}:`,
+        err
+      );
 
       const message =
         err instanceof Error
           ? err.message
-          : "Tangazo halikutumwa. Tafadhali jaribu tena.";
+          : `Imeshindikana ${currentStage}. Tafadhali jaribu tena.`;
 
       setError(message);
     } finally {
@@ -589,6 +666,7 @@ const Shop = () => {
             <label htmlFor="mineralType">
               Aina ya madini *
             </label>
+
             <input
               id="mineralType"
               name="mineralType"
@@ -602,6 +680,7 @@ const Shop = () => {
             <label htmlFor="description">
               Maelezo ya madini *
             </label>
+
             <textarea
               id="description"
               name="description"
@@ -615,6 +694,7 @@ const Shop = () => {
             <label htmlFor="location">
               Eneo la madini *
             </label>
+
             <input
               id="location"
               name="location"
@@ -628,6 +708,7 @@ const Shop = () => {
             <label htmlFor="weight">
               Uzito *
             </label>
+
             <input
               id="weight"
               name="weight"
@@ -644,6 +725,7 @@ const Shop = () => {
             <label htmlFor="weightUnit">
               Kipimo cha uzito
             </label>
+
             <select
               id="weightUnit"
               name="weightUnit"
@@ -658,6 +740,7 @@ const Shop = () => {
             <label htmlFor="price">
               Bei *
             </label>
+
             <input
               id="price"
               name="price"
@@ -674,6 +757,7 @@ const Shop = () => {
             <label htmlFor="currency">
               Sarafu
             </label>
+
             <select
               id="currency"
               name="currency"
@@ -688,6 +772,7 @@ const Shop = () => {
             <label htmlFor="contact">
               Mawasiliano ya muuzaji *
             </label>
+
             <input
               id="contact"
               name="contact"
@@ -701,6 +786,7 @@ const Shop = () => {
             <label htmlFor="imageFiles">
               Chagua picha kutoka Gallery ya simu
             </label>
+
             <input
               ref={fileInputRef}
               id="imageFiles"
@@ -729,7 +815,10 @@ const Shop = () => {
                 <strong>Picha ulizochagua: {selectedFiles.length}</strong>
 
                 {selectedFiles.map((file, index) => (
-                  <p key={`${file.name}-${index}`} style={{ fontSize: "13px" }}>
+                  <p
+                    key={`${file.name}-${index}`}
+                    style={{ fontSize: "13px" }}
+                  >
                     {file.name} — {(file.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 ))}
@@ -757,6 +846,7 @@ const Shop = () => {
             <label htmlFor="imageUrls">
               Viungo vya picha (si lazima)
             </label>
+
             <textarea
               id="imageUrls"
               name="imageUrls"
@@ -795,7 +885,9 @@ const Shop = () => {
               }}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Inapakia picha na kutuma tangazo..." : "Tuma Tangazo"}
+              {isSubmitting
+                ? "Inapakia picha na kutuma tangazo..."
+                : "Tuma Tangazo"}
             </button>
           </form>
         </section>
@@ -810,6 +902,7 @@ const Shop = () => {
         >
           <p>GFAMOUS MINERAL MARKET</p>
           <p>Contact: gfamous133@gmail.com</p>
+
           <p>
             <a href="https://gfamous133-hub.github.io/demo/privacy-policy.html">
               Privacy Policy
