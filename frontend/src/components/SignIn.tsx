@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface SignInProps {
   onSignIn: () => void;
@@ -29,15 +30,15 @@ const buttonContainerStyle: CSSProperties = {
   gap: "1rem",
 };
 
-const SignIn = ({ onSignIn, onModalClose, disabled }: SignInProps) => {
+const SignIn = ({ onSignIn, onModalClose, disabled }: SignInProps) => {\n  const { t } = useLanguage();
   return (
     <div style={modalStyle}>
-      <p style={{ fontWeight: "bold" }}>You need to sign in first.</p>
+      <p style={{ fontWeight: "bold" }}>{t("signInPrompt")}</p>
       <div style={buttonContainerStyle}>
         <button onClick={onSignIn} disabled={disabled}>
-          Sign in
+          {t("signInButton")}
         </button>
-        <button onClick={onModalClose}>Close</button>
+        <button onClick={onModalClose}>{t("close")}</button>
       </div>
     </div>
   );
