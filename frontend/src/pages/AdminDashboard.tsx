@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { axiosClient } from "../lib/axiosClient";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface MineralListing {
   _id: string;
@@ -18,7 +19,7 @@ interface MineralListing {
   createdAt?: string;
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard() {\n  const { t } = useLanguage();
   const [pending, setPending] = useState<MineralListing[]>([]);
   const [approved, setApproved] = useState<MineralListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,10 +43,10 @@ export default function AdminDashboard() {
       console.error(err);
       setError(
         err?.response?.status === 403
-          ? "Huna ruhusa. Admin pekee ndiye anayeruhusiwa."
+          ? t("adminOnly")
           : err?.response?.status === 401
-          ? "Tafadhali ingia kwa akaunti yako ya Pi."
-          : "Imeshindikana kupakia matangazo yanayosubiri."
+          ? t("piLoginRequired")
+          : t("pendingLoadFailed")
       );
     } finally {
       setLoading(false);
@@ -64,7 +65,7 @@ export default function AdminDashboard() {
       );
     } catch (err) {
       console.error(err);
-      setError("Imeshindikana kupakia matangazo yaliyoidhinishwa.");
+      setError(t("approvedLoadFailed"));
     } finally {
       setLoadingApproved(false);
     }
@@ -79,10 +80,10 @@ export default function AdminDashboard() {
     listing: MineralListing,
     status: "approved" | "rejected"
   ) => {
-    const action = status === "approved" ? "kuidhinisha" : "kukataa";
+    const action = status === "approved" ? t("approve") : t("reject");
 
     if (!window.confirm(
-      `Una uhakika unataka ${action} tangazo la ${listing.mineralType}?`
+      status === "approved" ? t("approveConfirm") : t("rejectConfirm")
     )) return;
 
     setBusyId(listing._id);
@@ -105,8 +106,8 @@ export default function AdminDashboard() {
 
       setMessage(
         status === "approved"
-          ? "Tangazo limeidhinishwa."
-          : "Tangazo limekataliwa."
+          ? t("approvedMessage")
+          : t("rejectedMessage")
       );
     } catch (err: any) {
       console.error(err);
@@ -122,7 +123,7 @@ export default function AdminDashboard() {
 
   const deleteListing = async (listing: MineralListing) => {
     const confirmed = window.confirm(
-      `TAHADHARI: Unataka kufuta kabisa tangazo la ${listing.mineralType} - ${listing.description}?`
+      t("deleteConfirm")
     );
 
     if (!confirmed) return;
@@ -138,15 +139,15 @@ export default function AdminDashboard() {
         current.filter((item) => item._id !== listing._id)
       );
 
-      setMessage("Tangazo lililochaguliwa limefutwa.");
+      setMessage(t("deletedMessage"));
     } catch (err: any) {
       console.error(err);
       setError(
         err?.response?.status === 403
-          ? "Huna ruhusa ya kufuta tangazo."
+          ? t("adminOnly")
           : err?.response?.status === 404
           ? "Tangazo halijapatikana."
-          : "Imeshindikana kufuta tangazo. Jaribu tena."
+          : t("deleteFailed")
       );
     } finally {
       setBusyId("");
@@ -200,16 +201,16 @@ export default function AdminDashboard() {
       ))}
 
       <p>{listing.description}</p>
-      <p><strong>Eneo:</strong> {listing.location}</p>
-      <p><strong>Uzito:</strong> {listing.weight} {listing.weightUnit}</p>
+      <p><strong>{t("location")}:</strong> {listing.location}</p>
+      <p><strong>{t("weight")}:</strong> {listing.weight} {listing.weightUnit}</p>
       <p>
-        <strong>Bei:</strong>{" "}
+        <strong>{t("price")}:</strong>{" "}
         {Number(listing.price).toLocaleString()} {listing.currency}
       </p>
-      <p><strong>Mawasiliano:</strong> {listing.contact}</p>
+      <p><strong>{t("contact")}:</strong> {listing.contact}</p>
       <p>
-        <strong>Muuzaji:</strong>{" "}
-        @{listing.sellerUsername || "Haijatajwa"}
+        <strong>{t("seller")}:</strong>{" "}
+        @{listing.sellerUsername || t("noSellerName")}
       </p>
 
       <div style={{
@@ -225,7 +226,7 @@ export default function AdminDashboard() {
             onClick={() => void deleteListing(listing)}
             disabled={busyId === listing._id}
           >
-            {busyId === listing._id ? "Inafuta..." : "Futa tangazo"}
+            {busyId === listing._id ? t("deleting") : t("delete")}
           </button>
         ) : (
           <>
@@ -235,7 +236,7 @@ export default function AdminDashboard() {
               onClick={() => void reviewListing(listing, "approved")}
               disabled={busyId === listing._id}
             >
-              {busyId === listing._id ? "Inahifadhi..." : "Idhinisha"}
+              {busyId === listing._id ? t("approving") : t("approve")}
             </button>
 
             <button
@@ -244,7 +245,7 @@ export default function AdminDashboard() {
               onClick={() => void reviewListing(listing, "rejected")}
               disabled={busyId === listing._id}
             >
-              {busyId === listing._id ? "Inahifadhi..." : "Kataa"}
+              {busyId === listing._id ? t("approving") : t("reject")}
             </button>
           </>
         )}
@@ -267,8 +268,8 @@ export default function AdminDashboard() {
         borderRadius: 12,
         marginBottom: 20,
       }}>
-        <h1>GFAMOUS Admin Dashboard</h1>
-        <p>Usimamizi wa matangazo ya madini.</p>
+        <h1>GFAMOUS {t("admin")}</h1>
+        <p>{t("moderation")}</p>
         <Link to="/" style={{ color: "#fff" }}>
           Rudi sokoni
         </Link>
@@ -287,44 +288,44 @@ export default function AdminDashboard() {
       )}
 
       <section style={card}>
-        <h2>Matangazo yanayosubiri: {pending.length}</h2>
+        <h2>{t("pending")}: {pending.length}</h2>
         <button
           type="button"
           style={{ ...button, background: "#176b43" }}
           onClick={() => void loadPending()}
           disabled={loading}
         >
-          {loading ? "Inapakia..." : "Onyesha upya"}
+          {loading ? t("loading") : t("refresh")}
         </button>
       </section>
 
-      {loading && <p>Inapakia matangazo yanayosubiri...</p>}
+      {loading && <p>{t("loading")}</p>}
 
       {!loading && pending.length === 0 && (
         <section style={card}>
-          Hakuna tangazo linalosubiri ukaguzi kwa sasa.
+          {t("noPending")}
         </section>
       )}
 
       {pending.map((listing) => renderListing(listing, false))}
 
       <section style={card}>
-        <h2>Matangazo yaliyoidhinishwa: {approved.length}</h2>
+        <h2>{t("approved")}: {approved.length}</h2>
         <button
           type="button"
           style={{ ...button, background: "#176b43" }}
           onClick={() => void loadApproved()}
           disabled={loadingApproved}
         >
-          {loadingApproved ? "Inapakia..." : "Onyesha upya"}
+          {loadingApproved ? t("loading") : t("refresh")}
         </button>
       </section>
 
-      {loadingApproved && <p>Inapakia matangazo yaliyoidhinishwa...</p>}
+      {loadingApproved && <p>{t("loading")}</p>}
 
       {!loadingApproved && approved.length === 0 && (
         <section style={card}>
-          Hakuna tangazo lililoidhinishwa kwa sasa.
+          {t("noApproved")}
         </section>
       )}
 
