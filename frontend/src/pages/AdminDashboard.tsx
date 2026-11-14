@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { axiosClient } from "../lib/axiosClient";
-import { useLanguage } from "../contexts/LanguageContext";
+import { languageOptions, useLanguage } from "../contexts/LanguageContext";
 
 interface MineralListing {
   _id: string;
@@ -20,7 +20,7 @@ interface MineralListing {
 }
 
 export default function AdminDashboard() {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [pending, setPending] = useState<MineralListing[]>([]);
   const [approved, setApproved] = useState<MineralListing[]>([]);
   const [loading, setLoading] = useState(true);
