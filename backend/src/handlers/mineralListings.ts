@@ -307,6 +307,9 @@ export default function mountMineralListingEndpoints(router: Router) {
         mineralType: String(mineralType).trim(),
         description: String(description).trim(),
         location: String(location).trim(),
+        ...(req.body.latitude !== undefined && req.body.longitude !== undefined
+          ? { latitude: Number(req.body.latitude), longitude: Number(req.body.longitude) }
+          : {}),
         weight: Number(weight),
         weightUnit: String(weightUnit),
         price: Number(price),
@@ -319,6 +322,14 @@ export default function mountMineralListingEndpoints(router: Router) {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
+
+      if (
+        (req.body.latitude !== undefined || req.body.longitude !== undefined) &&
+        (!Number.isFinite(listing.latitude) || listing.latitude < -90 || listing.latitude > 90 ||
+          !Number.isFinite(listing.longitude) || listing.longitude < -180 || listing.longitude > 180)
+      ) {
+        return res.status(400).json({ error: "GPS coordinates are invalid" });
+      }
 
       if (
         !Number.isFinite(listing.weight) ||
