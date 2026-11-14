@@ -214,7 +214,8 @@ const Shop = () => {
   }, [fetchListings]);
 
   const requestDeviceLocation = (
-    onSuccess: (position: { latitude: number; longitude: number }) => void
+    onSuccess: (position: { latitude: number; longitude: number }) => void,
+    fillListingLocation = false
   ) => {
     setGpsMessage("");
     if (!navigator.geolocation) {
@@ -223,14 +224,41 @@ const Shop = () => {
     }
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const coordinates = {
           latitude: Number(position.coords.latitude.toFixed(6)),
           longitude: Number(position.coords.longitude.toFixed(6)),
         };
         onSuccess(coordinates);
+
+        if (fillListingLocation) {
+          try {
+            const response = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&localityLanguage=sw`
+            );
+            if (!response.ok) throw new Error("Reverse geocoding failed");
+            const place = await response.json();
+            const locality = place.locality || place.city || "";
+            const areaName = [
+              locality || place.principalSubdivision,
+              place.principalSubdivision && place.principalSubdivision !== locality ? place.principalSubdivision : "",
+              place.countryName,
+            ].filter(Boolean).join(", ");
+
+            if (areaName) {
+              setForm((previous) => ({ ...previous, location: areaName }));
+              setGpsMessage(`Eneo limetambuliwa na kujazwa: ${areaName}`);
+            } else {
+              setGpsMessage("GPS imepata coordinates, lakini jina la eneo halikupatikana. Unaweza kuliandika mwenyewe.");
+            }
+          } catch (error) {
+            console.error("Location name lookup failed:", error);
+            setGpsMessage("GPS imepata coordinates, lakini jina la eneo halikupatikana. Jaribu tena au liandike mwenyewe.");
+          }
+        } else {
+          setGpsMessage("GPS imefanikiwa kutambua eneo lako.");
+        }
         setIsLocating(false);
-        setGpsMessage("GPS imefanikiwa kutambua eneo lako.");
       },
       (geoError) => {
         setIsLocating(false);
@@ -1109,7 +1137,7 @@ const Shop = () => {
               type="button"
               style={{ ...buttonStyle, marginBottom: "10px", background: "#b8860b" }}
               disabled={isLocating}
-              onClick={() => requestDeviceLocation(setFormGpsPosition)}
+              onClick={() => requestDeviceLocation(setFormGpsPosition, true)}
             >
               {isLocating ? "Inatambua eneo..." : formGpsPosition ? "Sasisha GPS ya tangazo" : "Tambua eneo langu kwa GPS"}
             </button>
