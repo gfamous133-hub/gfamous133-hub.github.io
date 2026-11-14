@@ -18,7 +18,9 @@ interface MineralListing {
   weightUnit: string;
   price: number;
   currency: string;
-  contact: string;
+  contact?: string;
+  phone?: string;
+  whatsapp?: string;
   imageUrls?: string[];
   sellerName?: string;
   createdAt?: string;
@@ -32,7 +34,8 @@ interface ListingForm {
   weightUnit: string;
   price: string;
   currency: string;
-  contact: string;
+  phone: string;
+  whatsapp: string;
   imageUrls: string;
 }
 
@@ -62,7 +65,8 @@ const initialForm: ListingForm = {
   weightUnit: "kg",
   price: "",
   currency: "TZS",
-  contact: "",
+  phone: "",
+  whatsapp: "",
   imageUrls: "",
 };
 
@@ -432,7 +436,7 @@ const Shop = () => {
       return;
     }
 
-    if (!form.location.trim() || !form.contact.trim()) {
+    if (!form.location.trim() || !form.phone.trim() || !form.whatsapp.trim()) {
       setError(t("fillLocationContact"));
       return;
     }
@@ -505,7 +509,8 @@ const Shop = () => {
         weightUnit: form.weightUnit,
         price,
         currency: form.currency,
-        contact: form.contact.trim(),
+        phone: form.phone.trim(),
+        whatsapp: form.whatsapp.trim(),
         imageUrls,
       });
 
@@ -843,7 +848,8 @@ const Shop = () => {
                   </p>
 
                   <p>
-                    <strong>{t("contact")}:</strong> {listing.contact}
+                    <strong>{t("sellerContact")}:</strong> {listing.phone || listing.contact || "—"}<br />
+                    <strong>WhatsApp:</strong> {listing.whatsapp || listing.phone || listing.contact || "—"}
                   </p>
 
                   <button
@@ -962,13 +968,29 @@ const Shop = () => {
               <option value="USD">{t("usd")}</option>
             </select>
 
-            <label htmlFor="contact">{t("sellerContact")} *</label>
+            <label htmlFor="phone">{t("sellerContact")} *</label>
             <input
-              id="contact"
-              name="contact"
-              value={form.contact}
+              id="phone"
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              value={form.phone}
               onChange={handleInputChange}
-              placeholder={t("contactPlaceholder")}
+              placeholder="+255 7XX XXX XXX"
+              style={inputStyle}
+              required
+            />
+
+            <label htmlFor="whatsapp">WhatsApp Number *</label>
+            <input
+              id="whatsapp"
+              name="whatsapp"
+              type="tel"
+              inputMode="tel"
+              value={form.whatsapp}
+              onChange={handleInputChange}
+              placeholder="+255 7XX XXX XXX"
               style={inputStyle}
               required
             />
