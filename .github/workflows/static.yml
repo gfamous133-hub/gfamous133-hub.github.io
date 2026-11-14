@@ -41,6 +41,9 @@ jobs:
           VITE_BACKEND_URL: https://gfamous-mineral-market-api.onrender.com
         run: yarn build
 
+      - name: Configure SPA route fallback
+        run: cp frontend/dist/index.html frontend/dist/404.html
+
       - name: Preserve legal pages
         run: |
           cp privacy-policy.html frontend/dist/
