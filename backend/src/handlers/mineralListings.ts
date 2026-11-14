@@ -35,6 +35,38 @@ export default function mountMineralListingEndpoints(router: Router) {
     }
   });
 
+
+  // Stores a buyer request only; no agent availability or verification is implied.
+  router.post("/inspection-requests", async (req, res) => {
+    try {
+      const user = req.session.currentUser;
+      if (!user) return res.status(401).json({ error: "Please sign in first" });
+      const listingId = String(req.body.listingId || "");
+      const reason = String(req.body.reason || "").trim();
+      if (!ObjectId.isValid(listingId) || !reason || reason.length > 1000) {
+        return res.status(400).json({ error: "A valid listing and inspection reason are required" });
+      }
+      const listings = req.app.locals.mineralListingCollection;
+      const requests = req.app.locals.inspectionRequestCollection;
+      if (!listings || !requests) return res.status(503).json({ error: "Database unavailable" });
+      const listing = await listings.findOne({ _id: new ObjectId(listingId), status: "approved" });
+      if (!listing) return res.status(404).json({ error: "Approved listing not found" });
+      const existing = await requests.findOne({ listingId: new ObjectId(listingId), buyerId: user._id, status: { $in: ["requested", "reviewing"] } });
+      if (existing) return res.status(409).json({ error: "You already have an open inspection request for this listing" });
+      const result = await requests.insertOne({
+        listingId: new ObjectId(listingId), buyerId: user._id, buyerUsername: user.username,
+        sellerId: listing.sellerId, sellerUsername: listing.sellerUsername,
+        mineralType: listing.mineralType, listingLocation: listing.location, reason,
+        status: "requested", agentAssigned: false, feeQuoted: false,
+        createdAt: new Date(), updatedAt: new Date(),
+      });
+      return res.status(201).json({ message: "Inspection request received", requestId: result.insertedId, status: "requested" });
+    } catch (error) {
+      console.error("Error creating inspection request:", error);
+      return res.status(500).json({ error: "Failed to submit inspection request" });
+    }
+  });
+
   // Display pending listings to moderators
   router.get("/pending", async (req, res) => {
     try {
