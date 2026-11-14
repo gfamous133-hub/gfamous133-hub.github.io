@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { axiosClient } from "../lib/axiosClient";
@@ -81,8 +80,6 @@ export default function AdminDashboard() {
     listing: MineralListing,
     status: "approved" | "rejected"
   ) => {
-    const action = status === "approved" ? t("approve") : t("reject");
-
     if (!window.confirm(
       status === "approved" ? t("approveConfirm") : t("rejectConfirm")
     )) return;
