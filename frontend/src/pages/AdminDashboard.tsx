@@ -211,8 +211,8 @@ export default function AdminDashboard() {
   };
 
   const card: React.CSSProperties = {
-    background: "#ffffff",
-    border: "1px solid #e4e8e1",
+    background: "#fffdf6",
+    border: "1px solid #ead58a",
     borderRadius: 12,
     padding: 18,
     marginBottom: 16,
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
     border: 0,
     borderRadius: 7,
     padding: "11px 17px",
-    color: "#fff",
+    color: "#17233e",
     cursor: "pointer",
     fontWeight: "bold",
   };
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
           <>
             <button
               type="button"
-              style={{ ...button, background: "#10213b" }}
+              style={{ ...button, background: "#e8b923" }}
               onClick={() => void reviewListing(listing, "approved")}
               disabled={busyId === listing._id}
             >
@@ -315,11 +315,12 @@ export default function AdminDashboard() {
       margin: "0 auto",
       padding: 20,
       fontFamily: "Arial, sans-serif",
-      color: "#202020",
+      color: "#17233e",
+      background: "#fffaf0",
     }}>
       <header style={{
-        background: "#10213b",
-        color: "#fff",
+        background: "linear-gradient(135deg, #f4d35e 0%, #d9a514 100%)",
+        color: "#17233e",
         padding: 22,
         borderRadius: 12,
         marginBottom: 20,
@@ -351,7 +352,7 @@ export default function AdminDashboard() {
       )}
 
       {message && (
-        <p role="status" style={{ ...card, color: "#10213b" }}>
+        <p role="status" style={{ ...card, color: "#8a6500" }}>
           {message}
         </p>
       )}
