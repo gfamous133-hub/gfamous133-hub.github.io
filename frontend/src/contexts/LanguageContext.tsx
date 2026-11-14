@@ -262,7 +262,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } catch {
       // The selected language remains active for this session.
     }
-  };
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -270,8 +270,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [language]);
 
   const value = useMemo<LanguageContextValue>(
-    () => ({ language, setLanguage, t: (key) => messages[language][key] }),
-    [language]
+    () => ({ language, setLanguage, t: (key: MessageKey) => messages[language][key] }),
+    [language, setLanguage]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
