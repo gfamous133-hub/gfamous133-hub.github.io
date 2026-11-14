@@ -8,13 +8,13 @@ interface SignInProps {
 }
 
 const modalStyle: CSSProperties = {
-  background: "white",
+  background: "#ffffff",
   position: "absolute",
   left: "15vw",
   top: "40%",
   width: "70vw",
   height: "25vh",
-  border: "1px solid black",
+  border: "1px solid #d6a62e",
   textAlign: "center",
   display: "flex",
   flexDirection: "column",
