@@ -67,6 +67,56 @@ export default function mountMineralListingEndpoints(router: Router) {
     }
   });
 
+  // Inspection requests are visible to moderators only.
+  router.get("/inspection-requests", async (req, res) => {
+    try {
+      if (!isModerator(req.session.currentUser)) {
+        return res.status(403).json({ error: "Moderator access required" });
+      }
+      const requests = req.app.locals.inspectionRequestCollection;
+      if (!requests) return res.status(503).json({ error: "Database unavailable" });
+      const items = await requests.find({})
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .toArray();
+      return res.status(200).json({ requests: items });
+    } catch (error) {
+      console.error("Error loading inspection requests:", error);
+      return res.status(500).json({ error: "Failed to load inspection requests" });
+    }
+  });
+
+  // Moderators can only move requests between the explicitly supported review states.
+  router.patch("/inspection-requests/:id/status", async (req, res) => {
+    try {
+      const user = req.session.currentUser;
+      if (!isModerator(user)) {
+        return res.status(403).json({ error: "Moderator access required" });
+      }
+      const requestId = req.params.id;
+      const status = req.body.status;
+      if (!ObjectId.isValid(requestId)) {
+        return res.status(400).json({ error: "Invalid inspection request ID" });
+      }
+      if (!["reviewing", "declined"].includes(status)) {
+        return res.status(400).json({ error: "Unsupported inspection request status" });
+      }
+      const requests = req.app.locals.inspectionRequestCollection;
+      if (!requests) return res.status(503).json({ error: "Database unavailable" });
+      const result = await requests.updateOne(
+        { _id: new ObjectId(requestId), status: { $in: ["requested", "reviewing"] } },
+        { $set: { status, reviewedBy: user.username, reviewedAt: new Date(), updatedAt: new Date() } }
+      );
+      if (!result.matchedCount) {
+        return res.status(404).json({ error: "Open inspection request not found" });
+      }
+      return res.status(200).json({ message: "Inspection request status updated", status });
+    } catch (error) {
+      console.error("Error updating inspection request:", error);
+      return res.status(500).json({ error: "Failed to update inspection request" });
+    }
+  });
+
   // Display pending listings to moderators
   router.get("/pending", async (req, res) => {
     try {
