@@ -153,8 +153,8 @@ export default function AdminDashboard() {
   };
 
   const card: React.CSSProperties = {
-    background: "#fff",
-    border: "1px solid #ddd",
+    background: "#ffffff",
+    border: "1px solid #e4e8e1",
     borderRadius: 12,
     padding: 18,
     marginBottom: 16,
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
       color: "#202020",
     }}>
       <header style={{
-        background: "#172b24",
+        background: "#17231e",
         color: "#fff",
         padding: 22,
         borderRadius: 12,
