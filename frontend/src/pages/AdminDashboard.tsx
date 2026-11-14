@@ -19,7 +19,8 @@ interface MineralListing {
   createdAt?: string;
 }
 
-export default function AdminDashboard() {\n  const { t } = useLanguage();
+export default function AdminDashboard() {
+  const { t } = useLanguage();
   const [pending, setPending] = useState<MineralListing[]>([]);
   const [approved, setApproved] = useState<MineralListing[]>([]);
   const [loading, setLoading] = useState(true);
