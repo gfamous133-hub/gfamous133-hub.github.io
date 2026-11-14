@@ -51,7 +51,7 @@ export default function AdminDashboard() {\n  const { t } = useLanguage();
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const loadApproved = useCallback(async () => {
     setLoadingApproved(true);
@@ -113,8 +113,8 @@ export default function AdminDashboard() {\n  const { t } = useLanguage();
       console.error(err);
       setError(
         err?.response?.status === 403
-          ? "Server imekataa ruhusa ya admin."
-          : "Imeshindikana kuhifadhi uamuzi. Jaribu tena."
+          ? t("adminOnly")
+          : t("decisionFailed")
       );
     } finally {
       setBusyId("");
@@ -146,7 +146,7 @@ export default function AdminDashboard() {\n  const { t } = useLanguage();
         err?.response?.status === 403
           ? t("adminOnly")
           : err?.response?.status === 404
-          ? "Tangazo halijapatikana."
+          ? t("deleteFailed")
           : t("deleteFailed")
       );
     } finally {
@@ -271,7 +271,7 @@ export default function AdminDashboard() {\n  const { t } = useLanguage();
         <h1>GFAMOUS {t("admin")}</h1>
         <p>{t("moderation")}</p>
         <Link to="/" style={{ color: "#fff" }}>
-          Rudi sokoni
+          {t("backToMarket")}
         </Link>
       </header>
 
