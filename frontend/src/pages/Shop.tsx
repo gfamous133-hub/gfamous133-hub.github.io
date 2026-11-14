@@ -131,7 +131,7 @@ const weightInGrams = (weight: number, unit: string): number => {
 };
 
 const Shop = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const {
     user,
     isAuthenticated,
@@ -543,6 +543,32 @@ const Shop = () => {
     }
   };
 
+
+  const handleInspectionRequest = async (listing: MineralListing) => {
+    const listingId = listing._id || listing.id;
+    if (!listingId) return;
+    if (!isAuthenticated) { requireAuth(); return; }
+    const messages: Record<string, { prompt: string; sent: string; failed: string }> = {
+      sw: { prompt: "Eleza unachotaka kikaguliwe (uzito, eneo au sampuli):", sent: "Ombi limepokelewa. Bado hatujathibitisha wakala katika eneo hili. Tutawasiliana nawe baada ya kupitia ombi.", failed: "Imeshindikana kutuma ombi. Jaribu tena." },
+      en: { prompt: "What should be checked (weight, location or sample)?", sent: "Request received. No agent has yet been confirmed for this area. We will contact you after review.", failed: "Could not submit the request. Please try again." },
+      fr: { prompt: "Que faut-il vérifier (poids, lieu ou échantillon) ?", sent: "Demande reçue. Aucun agent n'est encore confirmé dans cette zone. Nous vous contacterons après examen.", failed: "Impossible d'envoyer la demande. Réessayez." },
+      ar: { prompt: "ما الذي تريد فحصه (الوزن أو الموقع أو العينة)؟", sent: "تم استلام الطلب. لم يتم تأكيد وكيل في هذه المنطقة بعد. سنتواصل معك بعد المراجعة.", failed: "تعذر إرسال الطلب. حاول مرة أخرى." },
+      zh: { prompt: "需要检查什么（重量、地点或样品）？", sent: "已收到申请。目前尚未确认该地区有代理人员。审核后我们会联系您。", failed: "提交失败，请重试。" },
+      es: { prompt: "¿Qué debe comprobarse (peso, ubicación o muestra)?", sent: "Solicitud recibida. Aún no hay un agente confirmado en esta zona. Nos pondremos en contacto tras revisarla.", failed: "No se pudo enviar la solicitud. Inténtalo de nuevo." },
+      pt: { prompt: "O que deve ser verificado (peso, local ou amostra)?", sent: "Pedido recebido. Ainda não há agente confirmado nesta região. Entraremos em contato após a análise.", failed: "Não foi possível enviar o pedido. Tente novamente." },
+    };
+    const copy = messages[language] || messages.en;
+    const reason = window.prompt(copy.prompt);
+    if (!reason || !reason.trim()) return;
+    try {
+      await axiosClient.post("/mineral-listings/inspection-requests", { listingId, reason: reason.trim() });
+      window.alert(copy.sent);
+    } catch (err) {
+      console.error("Inspection request failed:", err);
+      window.alert(copy.failed);
+    }
+  };
+
   const handleReport = async (listing: MineralListing) => {
     const listingId = listing._id || listing.id;
 
@@ -862,6 +888,9 @@ const Shop = () => {
                     }}
                   >
                     {t("report")}
+                  </button>
+                  <button type="button" onClick={() => void handleInspectionRequest(listing)} style={{ ...buttonStyle, background: "#8a641c", marginTop: "8px", width: "100%" }}>
+                    {language === "sw" ? "Omba ukaguzi huru" : language === "fr" ? "Demander une inspection" : language === "ar" ? "طلب فحص مستقل" : language === "zh" ? "申请独立检验" : language === "es" ? "Solicitar inspección" : language === "pt" ? "Solicitar inspeção" : "Request independent inspection"}
                   </button>
                 </div>
               </article>
