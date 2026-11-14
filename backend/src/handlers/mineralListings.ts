@@ -85,11 +85,8 @@ export default function mountMineralListingEndpoints(router: Router) {
 
       const timestamp = Math.floor(Date.now() / 1000);
       const folder = "gfamous/mineral-listings";
-
       const signatureString = `folder=${folder}&timestamp=${timestamp}`;
 
-      // Cloudinary requires SHA-1 of the signed parameters
-      // followed directly by the API secret.
       const signature = createHash("sha1")
         .update(signatureString + apiSecret)
         .digest("hex");
@@ -263,6 +260,51 @@ export default function mountMineralListingEndpoints(router: Router) {
     } catch (error) {
       console.error("Error reporting listing:", error);
       return res.status(500).json({ error: "Failed to submit report" });
+    }
+  });
+
+  // Delete one approved listing - moderators only
+  router.delete("/:id", async (req, res) => {
+    try {
+      const user = req.session.currentUser;
+
+      if (!isModerator(user)) {
+        return res.status(403).json({
+          error: "Moderator access required",
+        });
+      }
+
+      const listingId = req.params.id;
+
+      if (!ObjectId.isValid(listingId)) {
+        return res.status(400).json({ error: "Invalid listing ID" });
+      }
+
+      const collection = req.app.locals.mineralListingCollection;
+
+      if (!collection) {
+        return res.status(503).json({ error: "Database unavailable" });
+      }
+
+      const result = await collection.deleteOne({
+        _id: new ObjectId(listingId),
+        status: "approved",
+      });
+
+      if (result.deletedCount === 0) {
+        return res.status(404).json({
+          error: "Approved listing not found",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Approved listing deleted",
+      });
+    } catch (error) {
+      console.error("Error deleting approved listing:", error);
+      return res.status(500).json({
+        error: "Failed to delete listing",
+      });
     }
   });
 
