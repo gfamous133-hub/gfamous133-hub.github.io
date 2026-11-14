@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import SignIn from "../components/SignIn";
 import { useAuth } from "../hooks/useAuth";
 import { axiosClient } from "../lib/axiosClient";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface MineralListing {
   _id?: string;
@@ -126,6 +127,7 @@ const weightInGrams = (weight: number, unit: string): number => {
 };
 
 const Shop = () => {
+  const { t } = useLanguage();
   const {
     user,
     isAuthenticated,
@@ -163,7 +165,7 @@ const Shop = () => {
       );
     } catch (err) {
       console.error("Error loading mineral listings:", err);
-      setError("Imeshindikana kupakia matangazo. Tafadhali jaribu tena.");
+      setError(t("pendingLoadFailed"));
     } finally {
       setIsLoadingListings(false);
     }
@@ -265,7 +267,7 @@ const Shop = () => {
     if (files.length > MAX_IMAGES) {
       setSelectedFiles([]);
       event.target.value = "";
-      setError("Chagua picha zisizozidi 5.");
+      setError(t("maxFiveImages"));
       return;
     }
 
@@ -273,14 +275,14 @@ const Shop = () => {
       if (!allowedImageTypes.includes(file.type)) {
         setSelectedFiles([]);
         event.target.value = "";
-        setError("Tumia picha za JPG, PNG au WebP pekee.");
+        setError(t("imageTypes"));
         return;
       }
 
       if (file.size > MAX_IMAGE_SIZE) {
         setSelectedFiles([]);
         event.target.value = "";
-        setError("Kila picha lazima isiwe kubwa kuliko MB 5.");
+        setError(t("imageSize"));
         return;
       }
     }
@@ -306,12 +308,12 @@ const Shop = () => {
         const status = err.response?.status;
 
         if (status === 401) {
-          throw new Error("Session yako imeisha. Ingia tena kwa Pi.");
+          throw new Error(t("sessionExpired"));
         }
 
         if (status === 503) {
           throw new Error(
-            "Huduma ya kupakia picha haijawekwa sawa kwenye server."
+            t("uploadUnavailable")
           );
         }
 
@@ -426,22 +428,22 @@ const Shop = () => {
     const price = Number(form.price);
 
     if (!form.mineralType.trim() || !form.description.trim()) {
-      setError("Tafadhali jaza aina ya madini na maelezo.");
+      setError(t("fillMineralDescription"));
       return;
     }
 
     if (!form.location.trim() || !form.contact.trim()) {
-      setError("Tafadhali jaza eneo na mawasiliano.");
+      setError(t("fillLocationContact"));
       return;
     }
 
     if (!Number.isFinite(weight) || weight <= 0) {
-      setError("Weka uzito sahihi unaozidi sifuri.");
+      setError(t("invalidWeight"));
       return;
     }
 
     if (!Number.isFinite(price) || price <= 0) {
-      setError("Weka bei sahihi inayozidi sifuri.");
+      setError(t("invalidPrice"));
       return;
     }
 
@@ -451,7 +453,7 @@ const Shop = () => {
       .filter(Boolean);
 
     if (existingImageUrls.length + selectedFiles.length > MAX_IMAGES) {
-      setError("Jumla ya picha na viungo vya picha visizidi 5.");
+      setError(t("maxFiveImages"));
       return;
     }
 
@@ -460,11 +462,11 @@ const Shop = () => {
         const parsedUrl = new URL(url);
 
         if (parsedUrl.protocol !== "https:") {
-          setError("Viungo vyote vya picha lazima vianze na https://");
+          setError(t("httpsOnly"));
           return;
         }
       } catch {
-        setError("Kuna kiungo cha picha kisicho sahihi.");
+        setError(t("invalidImageLink"));
         return;
       }
     }
@@ -508,7 +510,7 @@ const Shop = () => {
       });
 
       setSuccess(
-        "Tangazo lako limetumwa kwa mafanikio. Litasubiri ukaguzi kabla ya kuonekana sokoni."
+        t("submitted")
       );
 
       setForm(initialForm);
@@ -550,7 +552,7 @@ const Shop = () => {
     }
 
     const reason = window.prompt(
-      "Eleza sababu ya kuripoti tangazo hili:"
+      t("reportReason")
     );
 
     if (!reason || !reason.trim()) {
@@ -563,10 +565,10 @@ const Shop = () => {
         { reason: reason.trim() }
       );
 
-      window.alert("Asante. Ripoti yako imepokelewa kwa ukaguzi.");
+      window.alert(t("reportThanks"));
     } catch (err) {
       console.error("Error reporting listing:", err);
-      window.alert("Imeshindikana kutuma ripoti. Tafadhali jaribu tena.");
+      window.alert(t("reportFailed"));
     }
   };
 
@@ -617,15 +619,15 @@ const Shop = () => {
           </p>
 
           <p style={{ fontSize: "14px" }}>
-            Tanzania | Nunua kwa taarifa sahihi. Uza kwa uwazi.
+            {t("tagline")}
           </p>
         </section>
 
         <section style={cardStyle}>
-          <h2>Matangazo ya Madini</h2>
+          <h2>{t("listings")}</h2>
 
           <p style={{ color: "#666" }}>
-            Hapa yanaonekana matangazo yaliyoidhinishwa pekee.
+            {t("approvedOnly")}
           </p>
 
           <button
@@ -634,10 +636,10 @@ const Shop = () => {
             onClick={() => void fetchListings()}
             disabled={isLoadingListings}
           >
-            {isLoadingListings ? "Inapakia..." : "Onyesha upya"}
+            {isLoadingListings ? t("loading") : t("refresh")}
           </button>
 
-          {isLoadingListings && <p>Inapakia matangazo...</p>}
+          {isLoadingListings && <p>{t("loadingListings")}</p>}
 
           {error && (
             <p role="alert" style={{ color: "#b00020" }}>
@@ -662,9 +664,9 @@ const Shop = () => {
               marginTop: "20px",
             }}
           >
-            <h3>Tafuta na Chuja Madini</h3>
+            <h3>{t("filters")}</h3>
 
-            <label htmlFor="filterMineral">Aina ya madini</label>
+            <label htmlFor="filterMineral">{t("mineralType")}</label>
             <input
               id="filterMineral"
               name="mineralType"
@@ -674,7 +676,7 @@ const Shop = () => {
               style={inputStyle}
             />
 
-            <label htmlFor="filterLocation">Eneo</label>
+            <label htmlFor="filterLocation">{t("location")}</label>
             <input
               id="filterLocation"
               name="location"
@@ -684,7 +686,7 @@ const Shop = () => {
               style={inputStyle}
             />
 
-            <label htmlFor="filterMinWeight">Uzito kuanzia (gramu)</label>
+            <label htmlFor="filterMinWeight">{t("minWeight")}</label>
             <input
               id="filterMinWeight"
               name="minWeight"
@@ -696,7 +698,7 @@ const Shop = () => {
               style={inputStyle}
             />
 
-            <label htmlFor="filterMaxWeight">Uzito hadi (gramu)</label>
+            <label htmlFor="filterMaxWeight">{t("maxWeight")}</label>
             <input
               id="filterMaxWeight"
               name="maxWeight"
@@ -708,7 +710,7 @@ const Shop = () => {
               style={inputStyle}
             />
 
-            <label htmlFor="filterCurrency">Sarafu ya bei</label>
+            <label htmlFor="filterCurrency">{t("currency")}</label>
             <select
               id="filterCurrency"
               name="currency"
@@ -716,12 +718,12 @@ const Shop = () => {
               onChange={handleFilterChange}
               style={inputStyle}
             >
-              <option value="ALL">Sarafu zote</option>
+              <option value="ALL">{t("allCurrencies")}</option>
               <option value="TZS">TZS</option>
               <option value="USD">USD</option>
             </select>
 
-            <label htmlFor="filterMinPrice">Bei kuanzia</label>
+            <label htmlFor="filterMinPrice">{t("minPrice")}</label>
             <input
               id="filterMinPrice"
               name="minPrice"
@@ -729,11 +731,11 @@ const Shop = () => {
               min="0"
               value={filters.minPrice}
               onChange={handleFilterChange}
-              placeholder="Bei ya chini"
+              placeholder={t("minPricePlaceholder")}
               style={inputStyle}
             />
 
-            <label htmlFor="filterMaxPrice">Bei hadi</label>
+            <label htmlFor="filterMaxPrice">{t("maxPrice")}</label>
             <input
               id="filterMaxPrice"
               name="maxPrice"
@@ -741,7 +743,7 @@ const Shop = () => {
               min="0"
               value={filters.maxPrice}
               onChange={handleFilterChange}
-              placeholder="Bei ya juu"
+              placeholder={t("maxPricePlaceholder")}
               style={inputStyle}
             />
 
@@ -755,7 +757,7 @@ const Shop = () => {
 
             <p>
               <strong>
-                Matokeo: {filteredListings.length} kati ya {listings.length} matangazo
+                {t("results")}: {filteredListings.length} {t("of")} {listings.length} {t("listingsWord")}
               </strong>
             </p>
           </div>
@@ -763,7 +765,7 @@ const Shop = () => {
           {!isLoadingListings &&
             listings.length > 0 &&
             filteredListings.length === 0 && (
-              <p>Hakuna tangazo linalolingana na utafutaji wako.</p>
+              <p>{t("noMatches")}</p>
             )}
 
           <div
@@ -820,7 +822,7 @@ const Shop = () => {
                       color: "#666",
                     }}
                   >
-                    Hakuna picha
+                    {t("noImage")}
                   </div>
                 )}
 
@@ -829,21 +831,21 @@ const Shop = () => {
                   <p>{listing.description}</p>
 
                   <p>
-                    <strong>Eneo:</strong> {listing.location}
+                    <strong>{t("location")}:</strong> {listing.location}
                   </p>
 
                   <p>
-                    <strong>Uzito:</strong> {listing.weight}{" "}
+                    <strong>{t("weight")}:</strong> {listing.weight}{" "}
                     {listing.weightUnit}
                   </p>
 
                   <p>
-                    <strong>Bei:</strong>{" "}
+                    <strong>{t("price")}:</strong>{" "}
                     {listing.price.toLocaleString()} {listing.currency}
                   </p>
 
                   <p>
-                    <strong>Mawasiliano:</strong> {listing.contact}
+                    <strong>{t("contact")}:</strong> {listing.contact}
                   </p>
 
                   <button
@@ -864,7 +866,7 @@ const Shop = () => {
         </section>
 
         <section style={cardStyle}>
-          <h2>Weka Tangazo Lako</h2>
+          <h2>{t("submitListing")}</h2>
 
           <p style={{ color: "#666" }}>
             Wauzaji wanaweza kutuma taarifa za madini yao.
@@ -873,7 +875,7 @@ const Shop = () => {
 
           {!isAuthenticated && (
             <p>
-              Ingia kwa kutumia Pi ili uweze kutuma tangazo.
+              {t("signInToSubmit")}
             </p>
           )}
 
@@ -889,13 +891,13 @@ const Shop = () => {
               required
             />
 
-            <label htmlFor="description">Maelezo ya madini *</label>
+            <label htmlFor="description">{t("description")} *</label>
             <textarea
               id="description"
               name="description"
               value={form.description}
               onChange={handleInputChange}
-              placeholder="Eleza hali na taarifa za madini..."
+              placeholder={t("mineralDetailsPlaceholder")}
               style={{ ...inputStyle, minHeight: "100px" }}
               required
             />
@@ -906,7 +908,7 @@ const Shop = () => {
               name="location"
               value={form.location}
               onChange={handleInputChange}
-              placeholder="Mfano: Nyamongo, Mara, Tanzania"
+              placeholder={t("locationPlaceholder")}
               style={inputStyle}
               required
             />
@@ -920,12 +922,12 @@ const Shop = () => {
               step="any"
               value={form.weight}
               onChange={handleInputChange}
-              placeholder="Weka uzito"
+              placeholder={t("weightPlaceholder")}
               style={inputStyle}
               required
             />
 
-            <label htmlFor="weightUnit">Kipimo cha uzito</label>
+            <label htmlFor="weightUnit">{t("weightUnit")}</label>
             <select
               id="weightUnit"
               name="weightUnit"
@@ -933,8 +935,8 @@ const Shop = () => {
               onChange={handleInputChange}
               style={inputStyle}
             >
-              <option value="kg">Kilogram (kg)</option>
-              <option value="g">Gram (g)</option>
+              <option value="kg">{t("kilogram")}</option>
+              <option value="g">{t("gram")}</option>
             </select>
 
             <label htmlFor="price">Bei *</label>
@@ -946,7 +948,7 @@ const Shop = () => {
               step="any"
               value={form.price}
               onChange={handleInputChange}
-              placeholder="Weka bei"
+              placeholder={t("pricePlaceholder")}
               style={inputStyle}
               required
             />
@@ -959,23 +961,23 @@ const Shop = () => {
               onChange={handleInputChange}
               style={inputStyle}
             >
-              <option value="TZS">Tanzanian Shilling (TZS)</option>
-              <option value="USD">US Dollar (USD)</option>
+              <option value="TZS">{t("tzs")}</option>
+              <option value="USD">{t("usd")}</option>
             </select>
 
-            <label htmlFor="contact">Mawasiliano ya muuzaji *</label>
+            <label htmlFor="contact">{t("sellerContact")} *</label>
             <input
               id="contact"
               name="contact"
               value={form.contact}
               onChange={handleInputChange}
-              placeholder="Namba ya simu au mawasiliano"
+              placeholder={t("contactPlaceholder")}
               style={inputStyle}
               required
             />
 
             <label htmlFor="imageFiles">
-              Chagua picha kutoka Gallery ya simu
+              {t("chooseImages")}
             </label>
             <input
               ref={fileInputRef}
@@ -1002,7 +1004,7 @@ const Shop = () => {
                   marginBottom: "14px",
                 }}
               >
-                <strong>Picha ulizochagua: {selectedFiles.length}</strong>
+                <strong>{t("selectedImages")}: {selectedFiles.length}</strong>
 
                 {selectedFiles.map((file, index) => (
                   <p
@@ -1034,7 +1036,7 @@ const Shop = () => {
             )}
 
             <label htmlFor="imageUrls">
-              Viungo vya picha (si lazima)
+              {t("imageLinks")}
             </label>
             <textarea
               id="imageUrls"
@@ -1090,7 +1092,7 @@ const Shop = () => {
           }}
         >
           <p>GFAMOUS MINERAL MARKET</p>
-          <p>Contact: gfamous133@gmail.com</p>
+          <p>{t("footerContact")}: gfamous133@gmail.com</p>
 
           <p>
             <a href="https://gfamous133-hub.github.io/demo/privacy-policy.html">
