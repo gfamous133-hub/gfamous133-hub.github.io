@@ -770,9 +770,18 @@ const Shop = () => {
           <p style={{ fontSize: "14px", fontWeight: 700 }}>
             {t("tagline")}
           </p>
+
+          <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 12, marginTop: 20 }}>
+            <a href="#mineral-listings" style={{ ...buttonStyle, background: "#10213b", border: "2px solid #10213b", textDecoration: "none", display: "inline-block" }}>
+              Browse Mineral Listings / Tazama Madini
+            </a>
+            <a href="#submit-listing" style={{ ...buttonStyle, background: "#fff", color: "#10213b", border: "2px solid #10213b", textDecoration: "none", display: "inline-block" }}>
+              Sell Minerals / Uza Madini
+            </a>
+          </div>
         </section>
 
-        <section style={cardStyle}>
+        <section id="mineral-listings" style={cardStyle}>
           <h2>{t("listings")}</h2>
 
           <p style={{ color: "#666" }}>
@@ -1072,7 +1081,7 @@ const Shop = () => {
           </div>
         </section>
 
-        <section style={cardStyle}>
+        <section id="submit-listing" style={cardStyle}>
           <h2>{t("submitListing")}</h2>
 
           <p style={{ color: "#666" }}>
